@@ -1,122 +1,141 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+/**
+ * App.jsx - Root component with routing
+ * Protected routes, role guards, and theme initialization
+ */
 
-function App() {
-  const [count, setCount] = useState(0)
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import useAuthStore from './authStore'
+import useThemeStore from './themeStore'
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+// Layouts
+import DashboardLayout from './DashboardLayout'
 
-      <div className="ticks"></div>
+// Pages
+import LoginPage from './LoginPage'
+import DashboardPage from './pages/DashboardPage'
+import AuditsPage from './pages/AuditsPage'
+import AuditDetailPage from './pages/AuditDetailPage'
+import FeedbackPage from './pages/FeedbackPage'
+import AIInsightsPage from './pages/AIInsightsPage'
+import ProfilePage from './pages/ProfilePage'
+import AdminPage from './pages/admin/AdminPage'
+import AdminUsersPage from './pages/admin/AdminUsersPage'
+import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage'
+import AdminAuditsPage from './pages/admin/AdminAuditsPage'
+import AdminFeedbackPage from './pages/admin/AdminFeedbackPage'
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+// Protected Route wrapper
+function ProtectedRoute({ children, adminOnly = false }) {
+  const { isAuthenticated, user } = useAuthStore()
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (adminOnly && user?.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return children
 }
 
-export default App
+export default function App() {
+  const { initTheme } = useThemeStore()
+
+  useEffect(() => {
+    initTheme()
+  }, [initTheme])
+
+  return (
+    <BrowserRouter>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#1c1c28',
+            color: '#f1f1f5',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '12px',
+            fontSize: '14px',
+          },
+          success: {
+            iconTheme: { primary: '#f97316', secondary: '#1c1c28' }
+          },
+          error: {
+            iconTheme: { primary: '#ef4444', secondary: '#1c1c28' }
+          }
+        }}
+      />
+
+      <Routes>
+        {/* Public */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+        {/* Protected - Dashboard Layout */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="audits" element={<AuditsPage />} />
+          <Route path="audits/:id" element={<AuditDetailPage />} />
+          <Route path="feedback" element={<FeedbackPage />} />
+          <Route path="ai-insights" element={<AIInsightsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+
+          {/* Admin only routes */}
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/users"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminUsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/analytics"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminAnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/audits"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminAuditsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/feedback"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminFeedbackPage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
