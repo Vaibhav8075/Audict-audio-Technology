@@ -106,8 +106,8 @@ export function StatCard({ label, value, icon: Icon, trend, color = 'orange', lo
           </>
         ) : (
           <>
-            <p className="font-display font-bold text-2xl text-white">{value}</p>
-            <p className="text-xs text-white/40 mt-0.5">{label}</p>
+            <p className="font-display font-bold text-2xl text-slate-800 dark:text-white">{value}</p>
+            <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">{label}</p>
           </>
         )}
       </div>
@@ -123,11 +123,11 @@ export function EmptyState({ icon: Icon, title, description, action }) {
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col items-center justify-center py-16 text-center"
     >
-      <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-4">
-        {Icon && <Icon size={24} className="text-white/20" />}
+      <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06] flex items-center justify-center mb-4">
+        {Icon && <Icon size={24} className="text-slate-400 dark:text-white/20" />}
       </div>
-      <h3 className="font-medium text-white/60 mb-1">{title}</h3>
-      {description && <p className="text-sm text-white/30 max-w-xs mb-4">{description}</p>}
+      <h3 className="font-medium text-slate-800 dark:text-white/60 mb-1">{title}</h3>
+      {description && <p className="text-sm text-slate-500 dark:text-white/30 max-w-xs mb-4">{description}</p>}
       {action && action}
     </motion.div>
   )
@@ -139,7 +139,7 @@ export function SectionHeader({ title, subtitle, action }) {
     <div className="flex items-start justify-between mb-5">
       <div>
         <h2 className="section-title">{title}</h2>
-        {subtitle && <p className="text-sm text-white/40 mt-0.5">{subtitle}</p>}
+        {subtitle && <p className="text-sm text-slate-500 dark:text-white/40 mt-0.5">{subtitle}</p>}
       </div>
       {action && <div>{action}</div>}
     </div>
@@ -190,10 +190,10 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
       >
         {title && (
           <div className="flex items-center justify-between p-6 pb-0">
-            <h3 className="font-display font-semibold text-white text-lg">{title}</h3>
+            <h3 className="font-display font-semibold text-slate-800 dark:text-white text-lg">{title}</h3>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-all"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 dark:text-white/30 hover:text-slate-700 dark:hover:text-white/70 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all"
             >
               ×
             </button>
@@ -218,12 +218,12 @@ export function ProgressBar({ value, max = 100, color = 'orange', showLabel = fa
   return (
     <div className="relative">
       {showLabel && (
-        <div className="flex justify-between text-xs text-white/40 mb-1">
+        <div className="flex justify-between text-xs text-slate-500 dark:text-white/40 mb-1">
           <span>{value}</span>
           <span>{percent.toFixed(0)}%</span>
         </div>
       )}
-      <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+      <div className="h-1.5 rounded-full bg-slate-100 dark:bg-white/[0.06] overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percent}%` }}

@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware'
 const useThemeStore = create(
   persist(
     (set, get) => ({
-      theme: 'dark', // 'dark' | 'light'
+      theme: 'light', // 'dark' | 'light'
 
       toggleTheme: () => {
         const newTheme = get().theme === 'dark' ? 'light' : 'dark'

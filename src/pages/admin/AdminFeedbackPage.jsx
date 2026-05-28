@@ -86,19 +86,19 @@ export default function AdminFeedbackPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
-          <h3 className="font-display font-semibold text-white mb-4">Active forms</h3>
+          <h3 className="font-display font-semibold text-slate-800 dark:text-white mb-4">Active forms</h3>
           {loading ? (
-            <p className="text-sm text-white/50">Loading forms...</p>
+            <p className="text-sm text-slate-500 dark:text-white/50">Loading forms...</p>
           ) : forms.length === 0 ? (
             <EmptyState icon={MessageSquare} title="No forms yet" description="Create one above." />
           ) : (
             <div className="space-y-3">
               {forms.map((item) => (
-                <div key={item.id} className="rounded-xl border border-white/[0.06] p-4">
+                <div key={item.id} className="rounded-xl border border-slate-200 dark:border-white/[0.06] p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-medium text-white">{item.title}</p>
-                      <p className="text-xs text-white/40">{item.description}</p>
+                      <p className="font-medium text-slate-800 dark:text-white">{item.title}</p>
+                      <p className="text-xs text-slate-500 dark:text-white/40">{item.description}</p>
                     </div>
                     <Badge variant="blue">{item.question_count} questions</Badge>
                   </div>
@@ -109,20 +109,20 @@ export default function AdminFeedbackPage() {
         </Card>
 
         <Card className="p-5">
-          <h3 className="font-display font-semibold text-white mb-4">Recent submissions</h3>
+          <h3 className="font-display font-semibold text-slate-800 dark:text-white mb-4">Recent submissions</h3>
           {loading ? (
-            <p className="text-sm text-white/50">Loading submissions...</p>
+            <p className="text-sm text-slate-500 dark:text-white/50">Loading submissions...</p>
           ) : submissions.length === 0 ? (
             <EmptyState icon={MessageSquare} title="No submissions yet" description="Employees will appear here after submitting feedback." />
           ) : (
             <div className="space-y-3">
               {submissions.map((submission) => (
-                <div key={submission.id} className="rounded-xl border border-white/[0.06] p-4">
+                <div key={submission.id} className="rounded-xl border border-slate-200 dark:border-white/[0.06] p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-medium text-white">{submission.audit?.audit_id} - {submission.audit?.client_name}</p>
-                      <p className="text-xs text-white/40">{submission.submitted_by?.full_name} - {submission.form_title}</p>
-                      {submission.comments && <p className="text-sm text-white/60 mt-2">{submission.comments}</p>}
+                      <p className="font-medium text-slate-800 dark:text-white">{submission.audit?.audit_id} - {submission.audit?.client_name}</p>
+                      <p className="text-xs text-slate-500 dark:text-white/40">{submission.submitted_by?.full_name} - {submission.form_title}</p>
+                      {submission.comments && <p className="text-sm text-slate-600 dark:text-white/60 mt-2">{submission.comments}</p>}
                     </div>
                     <Badge variant="orange">{submission.overall_rating || '-'} / 5</Badge>
                   </div>

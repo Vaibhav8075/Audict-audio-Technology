@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Calendar, FileAudio, Mic, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { auditsAPI } from '../api.js'
@@ -33,7 +34,7 @@ export default function AuditsPage() {
       />
 
       {loading ? (
-        <Card className="p-6 text-white/50">Loading audits...</Card>
+        <Card className="p-6 text-slate-500 dark:text-white/50">Loading audits...</Card>
       ) : audits.length === 0 ? (
         <Card className="p-6">
           <EmptyState icon={Mic} title="No audits available" description="Admins create audits and upload audio from Manage Audits." />
@@ -45,17 +46,24 @@ export default function AuditsPage() {
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-display font-semibold text-white">{audit.audit_id}</h3>
+                    <h3 className="font-display font-semibold text-slate-800 dark:text-white">{audit.audit_id}</h3>
                     <Badge variant={audit.status}>{audit.status}</Badge>
                     {audit.recording?.has_file ? <Badge variant="green">audio ready</Badge> : <Badge variant="gray">no audio</Badge>}
                   </div>
-                  <p className="text-sm text-white/60 mt-1">{audit.client_name} - {audit.employee_name}</p>
-                  <p className="text-xs text-white/35 mt-1 flex items-center gap-1">
+                  <p className="text-sm text-slate-600 dark:text-white/60 mt-1">{audit.client_name} - {audit.employee_name}</p>
+                  <p className="text-xs text-slate-400 dark:text-white/35 mt-1 flex items-center gap-1">
                     <Calendar size={13} /> {audit.call_date ? new Date(audit.call_date).toLocaleString() : 'No date'}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-white/40">
-                  <FileAudio size={16} /> {audit.recording?.has_file ? 'Uploaded' : 'Waiting for upload'}
+                <div className="flex items-center gap-3 text-sm text-slate-400 dark:text-white/40">
+                  <div className="flex items-center gap-1.5">
+                    <FileAudio size={16} /> {audit.recording?.has_file ? 'Uploaded' : 'Waiting for upload'}
+                  </div>
+                  {audit.recording?.has_file && (
+                    <Link to={`/audits/${audit.id}`} className="btn-primary text-xs py-1.5 px-3">
+                      Review call
+                    </Link>
+                  )}
                 </div>
               </div>
             </Card>

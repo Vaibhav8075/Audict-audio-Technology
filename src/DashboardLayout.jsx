@@ -42,7 +42,7 @@ const adminNav = [
 function NavItem({ item, collapsed }) {
   if (item.divider) {
     return (
-      <div className="my-2 mx-4 border-t border-white/[0.06]" />
+      <div className="my-2 mx-4 border-t border-slate-200 dark:border-white/[0.06]" />
     )
   }
 
@@ -53,8 +53,8 @@ function NavItem({ item, collapsed }) {
         clsx(
           'flex items-center gap-3 px-3 py-2.5 rounded-xl mx-2 transition-all duration-200 group relative',
           isActive
-            ? 'bg-brand-500/15 text-brand-400 border border-brand-500/25'
-            : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]'
+            ? 'bg-brand-500/15 text-brand-600 dark:text-brand-400 border border-brand-500/25'
+            : 'text-slate-600 dark:text-white/50 hover:text-slate-900 dark:hover:text-white/80 hover:bg-slate-100 dark:hover:bg-white/[0.05]'
         )
       }
     >
@@ -69,7 +69,7 @@ function NavItem({ item, collapsed }) {
           )}
           <item.icon
             size={17}
-            className={clsx('flex-shrink-0 relative z-10', isActive ? 'text-brand-400' : '')}
+            className={clsx('flex-shrink-0 relative z-10', isActive ? 'text-brand-600 dark:text-brand-400' : '')}
           />
           <AnimatePresence>
             {!collapsed && (
@@ -134,12 +134,12 @@ export default function DashboardLayout() {
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
         style={{
-          background: '#16161f',
-          borderColor: 'rgba(255,255,255,0.06)',
+          background: 'var(--surface-card)',
+          borderColor: 'var(--surface-border)',
         }}
       >
         {/* Logo area */}
-        <div className="flex items-center gap-3 px-4 h-16 border-b border-white/[0.06] flex-shrink-0">
+        <div className="flex items-center gap-3 px-4 h-16 border-b border-slate-200 dark:border-white/[0.06] flex-shrink-0">
           <div className="w-8 h-8 rounded-xl bg-brand-500 flex items-center justify-center flex-shrink-0 shadow-orange-glow">
             <Mic size={16} className="text-white" />
           </div>
@@ -151,8 +151,8 @@ export default function DashboardLayout() {
                 exit={{ opacity: 0 }}
                 className="overflow-hidden"
               >
-                <p className="font-display font-bold text-white text-sm leading-none">DCM</p>
-                <p className="text-[10px] text-white/40 mt-0.5">Audit Intelligence</p>
+                <p className="font-display font-bold text-slate-800 dark:text-white text-sm leading-none">DCM</p>
+                <p className="text-[10px] text-slate-500 dark:text-white/40 mt-0.5">Audit Intelligence</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -160,7 +160,7 @@ export default function DashboardLayout() {
           {/* Collapse toggle - desktop only */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="ml-auto hidden lg:flex w-6 h-6 rounded-lg items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-all"
+            className="ml-auto hidden lg:flex w-6 h-6 rounded-lg items-center justify-center text-slate-400 dark:text-white/30 hover:text-slate-700 dark:hover:text-white/70 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all"
           >
             <ChevronRight
               size={14}
@@ -171,7 +171,7 @@ export default function DashboardLayout() {
           {/* Mobile close */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="ml-auto lg:hidden text-white/50 hover:text-white/80"
+            className="ml-auto lg:hidden text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80"
           >
             <X size={18} />
           </button>
@@ -185,13 +185,13 @@ export default function DashboardLayout() {
         </nav>
 
         {/* User section */}
-        <div className="border-t border-white/[0.06] p-3 flex-shrink-0">
+        <div className="border-t border-slate-200 dark:border-white/[0.06] p-3 flex-shrink-0">
           <div className={clsx(
             'flex items-center gap-3 p-2 rounded-xl',
             collapsed ? 'justify-center' : ''
           )}>
             <div className="w-8 h-8 rounded-full bg-brand-500/20 border border-brand-500/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-brand-400 font-semibold text-xs">
+              <span className="text-brand-600 dark:text-brand-400 font-semibold text-xs">
                 {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
               </span>
             </div>
@@ -203,8 +203,8 @@ export default function DashboardLayout() {
                   exit={{ opacity: 0 }}
                   className="flex-1 overflow-hidden"
                 >
-                  <p className="text-xs font-medium text-white/90 truncate">{user?.full_name}</p>
-                  <p className="text-[10px] text-white/40 capitalize">{user?.role}</p>
+                  <p className="text-xs font-medium text-slate-800 dark:text-white/90 truncate">{user?.full_name}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-white/40 capitalize">{user?.role}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -213,7 +213,7 @@ export default function DashboardLayout() {
           <button
             onClick={handleLogout}
             className={clsx(
-              'mt-1 flex items-center gap-2 px-3 py-2 rounded-xl w-full text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm',
+              'mt-1 flex items-center gap-2 px-3 py-2 rounded-xl w-full text-slate-500 dark:text-white/40 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-sm',
               collapsed ? 'justify-center' : ''
             )}
           >
@@ -230,45 +230,43 @@ export default function DashboardLayout() {
         <header
           className="h-16 flex items-center gap-4 px-6 border-b flex-shrink-0"
           style={{
-            background: 'rgba(17,17,24,0.95)',
+            background: 'var(--surface-card)',
             backdropFilter: 'blur(20px)',
-            borderColor: 'rgba(255,255,255,0.06)'
+            borderColor: 'var(--surface-border)'
           }}
         >
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(true)}
-            className="lg:hidden text-white/50 hover:text-white/80 mr-2"
+            className="lg:hidden text-slate-500 dark:text-white/50 hover:text-slate-800 dark:hover:text-white/80 mr-2"
           >
             <Menu size={20} />
           </button>
 
           {/* Search bar */}
-          <div className="flex-1 max-w-sm hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl border"
-            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}
-          >
-            <Search size={14} className="text-white/30" />
-            <span className="text-sm text-white/25">Search audits, clients...</span>
+          <div className="flex-1 max-w-sm hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.07] bg-slate-50 dark:bg-white/[0.03]">
+            <Search size={14} className="text-slate-400 dark:text-white/30" />
+            <span className="text-sm text-slate-400 dark:text-white/25">Search audits, clients...</span>
           </div>
 
           <div className="ml-auto flex items-center gap-2">
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all"
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 dark:text-white/40 hover:text-slate-800 dark:hover:text-white/80 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-all"
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
 
             {/* Notifications */}
-            <button className="relative w-9 h-9 rounded-xl flex items-center justify-center text-white/40 hover:text-white/80 hover:bg-white/[0.05] transition-all">
+            <button className="relative w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 dark:text-white/40 hover:text-slate-800 dark:hover:text-white/80 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-all">
               <Bell size={16} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-500 border border-[#111118]" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-brand-500 border border-slate-50 dark:border-[#111118]" />
             </button>
 
             {/* Avatar */}
             <div className="w-9 h-9 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center cursor-pointer hover:bg-brand-500/30 transition-all">
-              <span className="text-brand-400 font-semibold text-sm">
+              <span className="text-brand-600 dark:text-brand-400 font-semibold text-sm">
                 {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
               </span>
             </div>

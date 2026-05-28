@@ -112,7 +112,7 @@ export default function FeedbackPage() {
       />
 
       {loading ? (
-        <Card className="p-6 text-white/50">Loading feedback forms...</Card>
+        <Card className="p-6 text-slate-500 dark:text-white/50">Loading feedback forms...</Card>
       ) : audits.length === 0 || forms.length === 0 ? (
         <Card className="p-6">
           <EmptyState icon={MessageSquare} title="Feedback needs an audit and a form" description="Create an audit in Manage Audits and create a form in Submissions." />
@@ -122,13 +122,13 @@ export default function FeedbackPage() {
           <form onSubmit={submitFeedback} className="space-y-5">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-xs font-medium text-white/50 mb-1.5">Audit</label>
+                <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Audit</label>
                 <select className="input-field" value={selectedAuditId} onChange={(event) => setSelectedAuditId(event.target.value)}>
                   {audits.map((audit) => <option key={audit.id} value={audit.id}>{audit.audit_id} - {audit.client_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-white/50 mb-1.5">Feedback form</label>
+                <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Feedback form</label>
                 <select className="input-field" value={selectedFormId} onChange={(event) => setSelectedFormId(event.target.value)}>
                   {forms.map((form) => <option key={form.id} value={form.id}>{form.title}</option>)}
                 </select>
@@ -143,20 +143,20 @@ export default function FeedbackPage() {
 
             {(selectedForm?.questions || []).map((question) => (
               <div key={question.id}>
-                <label className="block text-sm font-medium text-white/70 mb-2">{question.question_text}</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-white/70 mb-2">{question.question_text}</label>
                 {renderQuestion(question)}
               </div>
             ))}
 
             <div className="grid gap-4 md:grid-cols-[160px,1fr]">
               <div>
-                <label className="block text-xs font-medium text-white/50 mb-1.5">Overall rating</label>
+                <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Overall rating</label>
                 <select className="input-field" value={overallRating} onChange={(event) => setOverallRating(event.target.value)}>
                   {[1, 2, 3, 4, 5].map((rating) => <option key={rating} value={rating}>{rating}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-white/50 mb-1.5">Comments</label>
+                <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Comments</label>
                 <textarea className="input-field min-h-24" value={comments} onChange={(event) => setComments(event.target.value)} />
               </div>
             </div>

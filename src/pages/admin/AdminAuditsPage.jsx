@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Calendar, FileAudio, FileText, RefreshCw, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { adminAPI, auditsAPI, recordingsAPI } from '../../api.js'
@@ -102,22 +103,22 @@ export default function AdminAuditsPage() {
       <Card className="p-6">
         <form onSubmit={createAudit} className="grid gap-4 lg:grid-cols-5">
           <div>
-            <label className="block text-xs font-medium text-white/50 mb-1.5">Audit ID</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Audit ID</label>
             <input className="input-field" value={form.audit_id} onChange={(event) => setForm({ ...form, audit_id: event.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-white/50 mb-1.5">Client name</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Client name</label>
             <input className="input-field" value={form.client_name} onChange={(event) => setForm({ ...form, client_name: event.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-white/50 mb-1.5">Employee</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Employee</label>
             <select className="input-field" value={form.employee_id} onChange={(event) => setForm({ ...form, employee_id: event.target.value })}>
               <option value="">Select employee</option>
               {employees.map((employee) => <option key={employee.id} value={employee.id}>{employee.full_name}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-white/50 mb-1.5">Call date</label>
+            <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Call date</label>
             <input type="datetime-local" className="input-field" value={form.call_date} onChange={(event) => setForm({ ...form, call_date: event.target.value })} />
           </div>
           <div className="flex items-end">
@@ -130,7 +131,7 @@ export default function AdminAuditsPage() {
 
       <div className="grid gap-4">
         {loading ? (
-          <Card className="p-6 text-white/50">Loading audits...</Card>
+          <Card className="p-6 text-slate-500 dark:text-white/50">Loading audits...</Card>
         ) : audits.length === 0 ? (
           <Card className="p-6">
             <EmptyState icon={FileAudio} title="No audits yet" description="Create an audit above, then upload an audio file." />
@@ -141,19 +142,26 @@ export default function AdminAuditsPage() {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-display font-semibold text-white">{audit.audit_id}</h3>
+                    <h3 className="font-display font-semibold text-slate-800 dark:text-white">{audit.audit_id}</h3>
                     <Badge variant={audit.status}>{audit.status}</Badge>
                     {audit.recording?.has_file && <Badge variant="green">audio uploaded</Badge>}
                   </div>
-                  <p className="text-sm text-white/60 mt-1">{audit.client_name} - {audit.employee_name}</p>
-                  <p className="text-xs text-white/35 mt-1 flex items-center gap-1">
+                  <p className="text-sm text-slate-600 dark:text-white/60 mt-1">{audit.client_name} - {audit.employee_name}</p>
+                  <p className="text-xs text-slate-400 dark:text-white/35 mt-1 flex items-center gap-1">
                     <Calendar size={13} /> {audit.call_date ? new Date(audit.call_date).toLocaleString() : 'No date'}
                   </p>
                 </div>
-                <label className="btn-secondary cursor-pointer justify-center">
-                  <Upload size={15} /> {uploadingId === audit.id ? 'Uploading...' : 'Upload audio'}
-                  <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" className="hidden" disabled={uploadingId === audit.id} onChange={(event) => uploadAudio(audit.id, event.target.files?.[0])} />
-                </label>
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  {audit.recording?.has_file && (
+                    <Link to={`/audits/${audit.id}`} className="btn-primary text-xs py-1.5 px-3 whitespace-nowrap justify-center">
+                      Review call
+                    </Link>
+                  )}
+                  <label className="btn-secondary cursor-pointer justify-center whitespace-nowrap">
+                    <Upload size={15} /> {uploadingId === audit.id ? 'Uploading...' : 'Upload audio'}
+                    <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" className="hidden" disabled={uploadingId === audit.id} onChange={(event) => uploadAudio(audit.id, event.target.files?.[0])} />
+                  </label>
+                </div>
               </div>
             </Card>
           ))

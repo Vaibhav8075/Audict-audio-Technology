@@ -55,18 +55,18 @@ export default function LoginPage() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
           className="absolute -top-40 -left-40 w-96 h-96 rounded-full opacity-20 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #f97316 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, #A48D78 0%, transparent 70%)' }}
         />
         <div
           className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full opacity-10 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #fb923c 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, #CBB9A4 0%, transparent 70%)' }}
         />
         {/* Grid pattern */}
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
-            backgroundImage: `linear-gradient(rgba(249,115,22,0.5) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(249,115,22,0.5) 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(rgba(164,141,120,0.5) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(164,141,120,0.5) 1px, transparent 1px)`,
             backgroundSize: '60px 60px'
           }}
         />
@@ -96,9 +96,9 @@ export default function LoginPage() {
         <div
           className="rounded-2xl p-8 border"
           style={{
-            background: 'rgba(28,28,40,0.8)',
+            background: 'rgba(37,28,26,0.8)',
             backdropFilter: 'blur(20px)',
-            borderColor: 'rgba(255,255,255,0.08)',
+            borderColor: 'rgba(203, 185, 164, 0.08)',
             boxShadow: '0 24px 64px rgba(0,0,0,0.5)'
           }}
         >

@@ -5,17 +5,32 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Neutral Luxury Palette
+        desertRock: "#A48D78",
+        softSandstone: "#CBB9A4",
+        creamedOat: "#E6DAC8",
+        porcelainMist: "#F4F1EA",
+        featherWhite: "#FAF9F6",
+
+        // Coffee / Earth Palette
+        mochaEarth: "#4B3935",
+        vanillaCream: "#F0E7D5",
+
+        // Wine / Ivory Palette
+        bordeauxVelvet: "#53161D",
+        ivoryWhisper: "#FFFBF0",
+
         brand: {
-          50:  '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
+          50: '#FAF9F6', // featherWhite
+          100: '#FFFBF0', // ivoryWhisper
+          200: '#F0E7D5', // vanillaCream
+          300: '#E6DAC8', // creamedOat
+          400: '#CBB9A4', // softSandstone
+          500: '#A48D78', // desertRock (Primary brand color)
+          600: '#8E7762', // slightly darker desertRock
+          700: '#4B3935', // mochaEarth
+          800: '#342522', // darker mochaEarth
+          900: '#53161D', // bordeauxVelvet
         },
         surface: {
           50:  '#fafafa',
