@@ -6,23 +6,25 @@
 
 @layer base {
   :root {
-    --brand: #f97316;
-    --brand-muted: rgba(249,115,22,0.15);
-    --surface-bg: #111118;
-    --surface-card: #1c1c28;
-    --surface-border: rgba(255,255,255,0.08);
-    --text-primary: #f1f1f5;
-    --text-secondary: #8888a0;
-    --text-muted: #55556a;
+    --brand: #CBB9A4; /* softSandstone */
+    --brand-muted: rgba(203, 185, 164, 0.15);
+    --surface-bg: #161110; /* deep rich espresso dark coffee shade */
+    --surface-card: #251c1a; /* rich dark mocha brown card */
+    --surface-border: rgba(203, 185, 164, 0.08);
+    --text-primary: #FFFBF0; /* ivoryWhisper */
+    --text-secondary: #E6DAC8; /* creamedOat */
+    --text-muted: #A48D78; /* desertRock */
   }
 
   html.light {
-    --surface-bg: #f4f4f8;
-    --surface-card: #ffffff;
-    --surface-border: rgba(0,0,0,0.08);
-    --text-primary: #0d0d1a;
-    --text-secondary: #555570;
-    --text-muted: #999ab0;
+    --brand: #A48D78; /* desertRock */
+    --brand-muted: rgba(164, 141, 120, 0.15);
+    --surface-bg: #F4F1EA; /* porcelainMist */
+    --surface-card: #FAF9F6; /* featherWhite */
+    --surface-border: rgba(75, 57, 53, 0.08); /* subtle coffee-toned border */
+    --text-primary: #4B3935; /* mochaEarth espresso dark brown */
+    --text-secondary: #A48D78; /* desertRock */
+    --text-muted: #CBB9A4; /* softSandstone */
   }
 
   * {
@@ -45,16 +47,16 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(249,115,22,0.3);
+    background: rgba(164, 141, 120, 0.3);
     border-radius: 99px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(249,115,22,0.6);
+    background: rgba(164, 141, 120, 0.6);
   }
 
   /* Selection color */
   ::selection {
-    background: rgba(249,115,22,0.3);
+    background: rgba(164, 141, 120, 0.3);
     color: #fff;
   }
 }
@@ -65,12 +67,12 @@
     @apply rounded-2xl border;
     background: var(--surface-card);
     border-color: var(--surface-border);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.35);
   }
 
-  /* Orange gradient text */
+  /* Luxury gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    background: linear-gradient(135deg, #A48D78 0%, #CBB9A4 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -105,7 +107,7 @@
     background: var(--surface-card);
   }
   .btn-secondary:hover {
-    border-color: rgba(249,115,22,0.4);
+    border-color: rgba(164, 141, 120, 0.4);
     color: var(--text-primary);
   }
 
@@ -118,8 +120,8 @@
   }
   .input-field::placeholder { color: var(--text-muted); }
   .input-field:focus {
-    border-color: rgba(249,115,22,0.5);
-    box-shadow: 0 0 0 3px rgba(249,115,22,0.08);
+    border-color: rgba(164, 141, 120, 0.5);
+    box-shadow: 0 0 0 3px rgba(164, 141, 120, 0.08);
   }
 
   /* Stat card */

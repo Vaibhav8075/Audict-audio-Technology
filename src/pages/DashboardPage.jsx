@@ -40,8 +40,8 @@ export default function DashboardPage() {
         {stats.map((stat) => <StatCard key={stat.label} {...stat} />)}
       </div>
       <Card className="p-6">
-        <div className="flex items-center gap-3 text-white/70">
-          <BarChart3 size={18} className="text-brand-400" />
+        <div className="flex items-center gap-3 text-slate-600 dark:text-white/70">
+          <BarChart3 size={18} className="text-brand-600 dark:text-brand-400" />
           <span className="text-sm">Create audits from Manage Audits, upload audio, then collect feedback from the Feedback page.</span>
         </div>
       </Card>

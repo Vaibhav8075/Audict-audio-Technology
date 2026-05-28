@@ -26,7 +26,7 @@ class GroqService:
             self.client = Groq(api_key=api_key)
         
         self.stt_model = "whisper-large-v3"
-        self.llm_model = "llama3-70b-8192"
+        self.llm_model = "llama-3.3-70b-versatile"
     
 
     async def transcribe_audio(self, file_path: str) -> dict:

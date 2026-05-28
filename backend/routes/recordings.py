@@ -4,7 +4,7 @@ Secure audio upload, streaming, and management.
 Audio files are NEVER served directly - always through protected stream endpoint.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request, BackgroundTasks
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
@@ -25,6 +25,7 @@ ALLOWED_MIME_TYPES = {"audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audi
 @router.post("/upload/{audit_id}")
 async def upload_recording(
     audit_id: int,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
@@ -106,6 +107,14 @@ async def upload_recording(
     audit.status = AuditStatus.processing
     
     db.commit()
+    
+    # Queue background AI analysis
+    from routes.ai_analysis import process_ai_analysis
+    background_tasks.add_task(
+        process_ai_analysis,
+        audit_id=audit_id,
+        recording_path=file_path
+    )
     
     return {
         "message": "Recording uploaded successfully",
