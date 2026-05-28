@@ -66,7 +66,7 @@ export default function AIInsightsPage() {
           <EmptyState
             icon={Brain}
             title="No AI Analysis Available"
-            description="Upload an audio recording to an audit. Once processed by Groq AI, your conversational reports will show up here."
+            description="Upload an audio recording to an audit. Once processed by AI, your conversational reports will show up here."
             action={<Link to="/audits" className="btn-primary mt-2 inline-flex">Go to My Audits</Link>}
           />
         </Card>
@@ -164,7 +164,7 @@ export default function AIInsightsPage() {
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
                 <KeyRound size={16} className="text-brand" /> Conversational Keywords
               </h3>
-              <p className="text-xs text-slate-400 dark:text-white/35">Recurring themes and subjects extracted by Groq AI.</p>
+              <p className="text-xs text-slate-400 dark:text-white/35">Recurring themes and subjects extracted by AI.</p>
               
               <div className="flex flex-wrap gap-2 pt-2">
                 {stats.top_keywords.map((kw, i) => (

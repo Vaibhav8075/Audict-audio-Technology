@@ -298,7 +298,16 @@ async def get_all_submissions(
             "overall_rating": s.overall_rating,
             "comments": s.comments,
             "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
-            "answer_count": len(s.question_answers)
+            "answer_count": len(s.question_answers),
+            "answers": [
+                {
+                    "question_id": qa.question_id,
+                    "question_text": qa.question.question_text if qa.question else None,
+                    "question_type": qa.question.question_type.value if qa.question else None,
+                    "answer_value": qa.answer_value
+                }
+                for qa in s.question_answers
+            ]
         })
     
     return {"submissions": result, "total": total, "page": page, "per_page": per_page}

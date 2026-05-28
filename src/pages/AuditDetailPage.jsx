@@ -356,7 +356,7 @@ export default function AuditDetailPage() {
           <Brain size={32} className="mx-auto text-brand opacity-30 animate-pulse mb-3" />
           <p className="text-sm font-semibold text-slate-800 dark:text-white">AI Analysis is Processing</p>
           <p className="text-xs text-slate-500 dark:text-white/40 mt-1 max-w-xs mx-auto">
-            Groq Speech-to-Text and LLM evaluation are analyzing the conversation recording. Check back in a few moments.
+            AI Speech-to-Text and evaluation are analyzing the conversation recording. Check back in a few moments.
           </p>
         </Card>
       )}

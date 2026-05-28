@@ -241,15 +241,16 @@ export const adminAPI = {
     const res = await api.get('/api/admin/logs', { params })
     return res.data
   },
-  exportFeedbackCSV: () => {
-    const stored = localStorage.getItem('dcm-auth')
-    let token = ''
-    if (stored) {
-      try { const { state } = JSON.parse(stored); token = state?.accessToken || '' } catch {
-        // Ignore malformed persisted auth state.
-      }
-    }
-    window.open(`${BASE_URL}/api/admin/export/feedback-csv?token=${token}`, '_blank')
+  exportFeedbackCSV: async () => {
+    const res = await api.get('/api/admin/export/feedback-csv', { responseType: 'blob' })
+    const url = window.URL.createObjectURL(new Blob([res.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `feedback_export_${Date.now()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
   }
 }
 
