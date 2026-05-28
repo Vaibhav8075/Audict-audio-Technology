@@ -70,24 +70,28 @@
     box-shadow: 0 4px 24px rgba(0,0,0,0.35);
   }
 
-  /* Luxury gradient text */
+  /* Luxury solid text */
   .gradient-text {
-    background: linear-gradient(135deg, #A48D78 0%, #CBB9A4 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--brand);
   }
 
-  /* Status badges */
+  /* Premium Status badges (No generic AI-ish neon colors) */
   .badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border;
   }
-  .badge-green  { @apply bg-emerald-500/15 text-emerald-400 border border-emerald-500/20; }
-  .badge-yellow { @apply bg-amber-500/15 text-amber-400 border border-amber-500/20; }
-  .badge-red    { @apply bg-red-500/15 text-red-400 border border-red-500/20; }
-  .badge-blue   { @apply bg-blue-500/15 text-blue-400 border border-blue-500/20; }
-  .badge-orange { @apply bg-orange-500/15 text-orange-400 border border-orange-500/20; }
-  .badge-gray   { @apply bg-white/5 text-white/50 border border-white/10; }
+  .badge-green  { background-color: #53161D; color: #FFFBF0; border-color: rgba(255,251,240,0.15); } /* completed - bordeaux velvet */
+  .badge-yellow { background-color: #A48D78; color: #FAF9F6; border-color: rgba(250,249,246,0.15); } /* processing - desert rock */
+  .badge-red    { background-color: #4B3935; color: #F0E7D5; border-color: rgba(240,231,213,0.15); } /* expired/warning - mocha */
+  .badge-blue   { background-color: #CBB9A4; color: #4B3935; border-color: rgba(75,57,53,0.15); } /* active - sandstone */
+  .badge-orange { background-color: #E6DAC8; color: #4B3935; border-color: rgba(75,57,53,0.15); } /* ratings - creamed oat */
+  .badge-gray   { background-color: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.1); }
+
+  html.light .badge-green  { background-color: #FFFBF0; color: #53161D; border-color: rgba(83,22,29,0.2); }
+  html.light .badge-yellow { background-color: #FAF9F6; color: #A48D78; border-color: rgba(164,141,120,0.2); }
+  html.light .badge-red    { background-color: #FAF9F6; color: #4B3935; border-color: rgba(75,57,53,0.2); }
+  html.light .badge-blue   { background-color: #F4F1EA; color: #A48D78; border-color: rgba(164,141,120,0.2); }
+  html.light .badge-orange { background-color: #FAF9F6; color: #A48D78; border-color: rgba(164,141,120,0.2); }
+  html.light .badge-gray   { background-color: #FAF9F6; color: #A48D78; border-color: rgba(164,141,120,0.1); }
 
   /* Primary button */
   .btn-primary {
@@ -137,10 +141,7 @@
 
   /* Loading skeleton */
   .skeleton {
-    @apply rounded-lg animate-pulse;
-    background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s linear infinite;
+    @apply rounded-lg animate-pulse bg-slate-200 dark:bg-white/[0.04];
   }
 }
 
@@ -151,4 +152,14 @@
 wave {
   overflow: hidden !important;
   border-radius: 8px;
+}
+
+/* Select Option Dark Mode contrast fix */
+select option {
+  background-color: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+}
+html.light select option {
+  background-color: #FAF9F6 !important;
+  color: #4B3935 !important;
 }

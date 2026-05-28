@@ -145,27 +145,27 @@ async def get_public_audit_list(
     Returns ALL audit names/clients (for listing purposes only).
     Employees can see names but CANNOT access other people's recordings.
     """
-    audits = db.query(
-        Audit.id,
-        Audit.audit_id,
-        Audit.client_name,
-        Audit.call_date,
-        Audit.status,
-        Audit.employee_id,
-        User.full_name.label("employee_name")
-    ).join(User, Audit.employee_id == User.id).order_by(desc(Audit.call_date)).limit(100).all()
+    audits = db.query(Audit).options(
+        joinedload(Audit.employee),
+        joinedload(Audit.recording)
+    ).order_by(desc(Audit.call_date)).limit(100).all()
     
     result = []
     for a in audits:
+        rec = a.recording
+        has_file = rec.file_path is not None and not rec.is_expired if rec else False
         result.append({
             "id": a.id,
             "audit_id": a.audit_id,
             "client_name": a.client_name,
             "call_date": a.call_date.isoformat() if a.call_date else None,
             "status": a.status.value,
-            "employee_name": a.employee_name,
+            "employee_name": a.employee.full_name if a.employee else None,
             # IMPORTANT: is_own_audit flag controls access in frontend
-            "is_own_audit": a.employee_id == current_user.id
+            "is_own_audit": a.employee_id == current_user.id,
+            "recording": {
+                "has_file": has_file
+            } if rec else None
         })
     
     return {"audits": result}

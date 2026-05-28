@@ -10,6 +10,16 @@ import {
 } from 'recharts'
 import { adminAPI } from '../../api.js'
 import { Card, SectionHeader, StatCard, Skeleton, Badge, ProgressBar } from '../../index.jsx'
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-900 text-white border border-slate-700/50 p-2.5 rounded-xl text-xs font-semibold shadow-xl">
+        <p className="capitalize">{`${payload[0].name === 'count' ? 'Audits' : payload[0].name}: ${payload[0].value}`}</p>
+      </div>
+    )
+  }
+  return null
+}
 
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState(null)
@@ -125,15 +135,7 @@ export default function AdminAnalyticsPage() {
                 </defs>
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} />
                 <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
-                <Tooltip
-                  contentStyle={{
-                    background: 'var(--surface-card)',
-                    border: '1px solid var(--surface-border)',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    color: 'var(--text-primary)'
-                  }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Area type="monotone" dataKey="count" stroke="var(--brand)" strokeWidth={2} fillOpacity={1} fill="url(#colorTrend)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -145,7 +147,7 @@ export default function AdminAnalyticsPage() {
           <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
             <Smile size={16} className="text-brand" /> AI Sentiment Distribution
           </h3>
-          <p className="text-xs text-slate-400 dark:text-white/35">Aggregate caller feelings parsed by Groq Speech analysis.</p>
+          <p className="text-xs text-slate-400 dark:text-white/35">Aggregate caller feelings parsed by AI speech analysis.</p>
 
           <div className="h-48 w-full relative flex items-center justify-center">
             {sentimentData.length === 0 ? (
@@ -166,15 +168,7 @@ export default function AdminAnalyticsPage() {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: 'var(--surface-card)',
-                      border: '1px solid var(--surface-border)',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      color: 'var(--text-primary)'
-                    }}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             )}

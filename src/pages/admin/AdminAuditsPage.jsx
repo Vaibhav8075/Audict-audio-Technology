@@ -14,6 +14,7 @@ export default function AdminAuditsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingId, setUploadingId] = useState(null)
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
   const [form, setForm] = useState(() => ({
     audit_id: createAuditId(),
     client_name: '',
@@ -25,6 +26,11 @@ export default function AdminAuditsPage() {
     () => users.filter((user) => user.role === 'employee' && user.is_active),
     [users],
   )
+
+  const filteredAudits = useMemo(() => {
+    if (!selectedEmployeeId) return audits
+    return audits.filter((a) => String(a.employee_id) === String(selectedEmployeeId))
+  }, [audits, selectedEmployeeId])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -129,15 +135,34 @@ export default function AdminAuditsPage() {
         </form>
       </Card>
 
+      {/* Employee filter dropdown */}
+      {employees.length > 0 && (
+        <Card className="p-4 flex items-center gap-3">
+          <label className="text-xs font-semibold text-slate-500 dark:text-white/40 uppercase">Filter Employee:</label>
+          <select
+            className="input-field max-w-xs text-xs py-1.5 px-3"
+            value={selectedEmployeeId}
+            onChange={(e) => setSelectedEmployeeId(e.target.value)}
+          >
+            <option value="">All Employees</option>
+            {employees.map((emp) => (
+              <option key={emp.id} value={emp.id}>
+                {emp.full_name}
+              </option>
+            ))}
+          </select>
+        </Card>
+      )}
+
       <div className="grid gap-4">
         {loading ? (
           <Card className="p-6 text-slate-500 dark:text-white/50">Loading audits...</Card>
-        ) : audits.length === 0 ? (
+        ) : filteredAudits.length === 0 ? (
           <Card className="p-6">
-            <EmptyState icon={FileAudio} title="No audits yet" description="Create an audit above, then upload an audio file." />
+            <EmptyState icon={FileAudio} title="No audits match filter" description="Select a different employee or create an audit above." />
           </Card>
         ) : (
-          audits.map((audit) => (
+          filteredAudits.map((audit) => (
             <Card key={audit.id} className="p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
