@@ -102,6 +102,11 @@ export default function DashboardLayout() {
   // Notifications State
   const [notifications, setNotifications] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    setSearchQuery('')
+  }, [location.pathname])
 
   const loadNotifications = async () => {
     if (!user) return
@@ -326,9 +331,15 @@ export default function DashboardLayout() {
           </button>
 
           {/* Search bar */}
-          <div className="flex-1 max-w-sm hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.07] bg-slate-50 dark:bg-white/[0.03]">
+          <div className="flex-1 max-w-sm hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.07] bg-slate-50 dark:bg-white/[0.03] focus-within:border-brand-500/50 transition-all">
             <Search size={14} className="text-slate-400 dark:text-white/30" />
-            <span className="text-sm text-slate-400 dark:text-white/25">Search audits, clients...</span>
+            <input
+              type="text"
+              placeholder="Search audits, clients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-transparent border-0 p-0 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-white/25 focus:ring-0 focus:outline-none"
+            />
           </div>
 
           <div className="ml-auto flex items-center gap-2">
@@ -434,7 +445,7 @@ export default function DashboardLayout() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
           >
-            <Outlet />
+            <Outlet context={{ searchQuery, setSearchQuery }} />
           </motion.div>
         </main>
       </div>

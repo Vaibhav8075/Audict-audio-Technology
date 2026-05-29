@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import { Calendar, FileAudio, FileText, RefreshCw, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { adminAPI, auditsAPI, recordingsAPI } from '../../api.js'
@@ -11,6 +11,7 @@ const createLocalDateTime = () => new Date().toISOString().slice(0, 16)
 export default function AdminAuditsPage() {
   const [audits, setAudits] = useState([])
   const [users, setUsers] = useState([])
+  const { searchQuery } = useOutletContext() || { searchQuery: '' }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingId, setUploadingId] = useState(null)
@@ -28,9 +29,21 @@ export default function AdminAuditsPage() {
   )
 
   const filteredAudits = useMemo(() => {
-    if (!selectedEmployeeId) return audits
-    return audits.filter((a) => String(a.employee_id) === String(selectedEmployeeId))
-  }, [audits, selectedEmployeeId])
+    let result = audits
+    if (selectedEmployeeId) {
+      result = result.filter((a) => String(a.employee_id) === String(selectedEmployeeId))
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter((a) => 
+        a.audit_id?.toLowerCase().includes(q) ||
+        a.client_name?.toLowerCase().includes(q) ||
+        a.employee_name?.toLowerCase().includes(q) ||
+        a.status?.toLowerCase().includes(q)
+      )
+    }
+    return result
+  }, [audits, selectedEmployeeId, searchQuery])
 
   const loadData = useCallback(async () => {
     setLoading(true)
