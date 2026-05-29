@@ -4,33 +4,33 @@ An AI-powered quality auditing and self-evaluation platform designed for custome
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
-### 🔒 Privacy-First Security & Visibility
+###  Privacy-First Security & Visibility
 * **Strict Role Boundaries**: Employees can view the list of public call audits (offering official assurance of compliance), but other users' call details and audio players are **strictly locked** (marked with a lock icon).
 * **JWT Protected Audio Streaming**: Direct audio file paths are never exposed. Audio files are fetched securely via authenticated binary blob interceptors and bound dynamically using WaveSurfer.js.
 
-### 🧠 Call Evaluation
+###  Call Evaluation
 * **AI Transcription**: Automatic call transcription using Whisper API.
 * **AI Call Metrics**: Computes call quality scores, Customer Satisfaction (CSAT) gauges, and customer sentiments using Llama models.
 * **Topic & Keyword Extraction**: Extracts recurring themes and keywords dynamically.
 * **Actionable Suggestions**: Generates customized recommendations for call agents to improve their interactions.
 
-### 📋 Custom Feedback & Form Builders
+###  Custom Feedback & Form Builders
 * **Dynamic Form Builder**: Admins can customize the questionnaire at any time—adding, editing, or removing questions with types like Yes/No, Rating (1-5), and Open Text.
 * **Permanent Feedback Logs**: Submissions are preserved forever in the database. Clicking a log opens a detailed modal mapping out the full questionnaire and employee responses.
 
-### ⏱ Retention & Auto-Cleanups
+###  Retention & Auto-Cleanups
 * **7-Day Retention Limit**: Call recordings (audio files) are automatically cleaned up from disk 7 days after upload to minimize storage overhead, while all feedback and textual metadata are preserved permanently.
 * **Active Background Scheduler**: An integrated APScheduler engine manages daily file expiry runs and weekly disk safety cleanups.
 
-### 📊 Professional Dashboard Analytics
+###  Professional Dashboard Analytics
 * **Consolidated Trends**: Area charts tracking daily audit activity volumes over a rolling 7-day window.
 * **Legible Charting**: Recharts-based high-contrast tooltips fully readable in both Light and Dark themes.
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 ### Backend Layer
 * **Core**: FastAPI (Python 3)
@@ -46,7 +46,7 @@ An AI-powered quality auditing and self-evaluation platform designed for custome
 
 ---
 
-## ⚙ Setup & Installation
+##  Setup & Installation
 
 ### 1. Backend Setup
 Navigate into the `backend/` directory:
@@ -96,7 +96,7 @@ The application will be accessible at `http://localhost:5173`.
 
 ---
 
-## 🛡 Security Architecture
+##  Security Architecture
 1. **API Interceptors**: The frontend utilizes custom Axios interceptors to inject authorization headers dynamically.
 2. **Blob Audio Handlers**: HTML5 audio tags are blocked from direct URL requests. Instead, audio data is fetched inside an authorized stream block as a `responseType: 'blob'`, dynamically building local object URLs (`URL.createObjectURL`).
 3. **Data Preservation**: Feedback logs, audit records, and user logs are permanently preserved to retain clean auditing trails.
