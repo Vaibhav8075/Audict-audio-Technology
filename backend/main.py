@@ -3,7 +3,7 @@ DCM Audit System - FastAPI Backend
 Main application entry point
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
@@ -45,6 +45,12 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+@app.middleware("http")
+async def add_root_path_middleware(request: Request, call_next):
+    prefix = "/_/backend"
+    if request.scope["path"].startswith(prefix):
+        request.scope["path"] = request.scope["path"][len(prefix):]
+    return await call_next(request)
 
 # CORS Configuration
 app.add_middleware(
