@@ -35,7 +35,7 @@ export default function AuditsPage() {
     loadAudits()
   }, [])
 
-  // Auto-expand all employees by default when audits are loaded
+  
   useEffect(() => {
     if (audits.length > 0) {
       const initial = {}
@@ -55,7 +55,7 @@ export default function AuditsPage() {
     }))
   }
 
-  // Generate unique employee list dynamically for filtering dropdown
+  
   const uniqueEmployees = useMemo(() => {
     const map = new Map()
     audits.forEach((a) => {
@@ -68,7 +68,7 @@ export default function AuditsPage() {
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
   }, [audits])
 
-  // Filter audits based on selected dropdown value and search query
+  
   const filteredAudits = useMemo(() => {
     let result = audits
     if (selectedEmployeeId) {
@@ -86,7 +86,7 @@ export default function AuditsPage() {
     return result
   }, [audits, selectedEmployeeId, searchQuery])
 
-  // Group filtered audits by employee
+  
   const groupedAudits = useMemo(() => {
     const map = new Map()
     filteredAudits.forEach((audit) => {
@@ -112,7 +112,7 @@ export default function AuditsPage() {
         action={<button type="button" onClick={loadAudits} className="btn-secondary"><RefreshCw size={15} /> Refresh</button>}
       />
 
-      {/* Employee Filter Dropdown */}
+      {}
       {uniqueEmployees.length >= 1 && (
         <Card className="p-4 flex items-center gap-3">
           <label className="text-xs font-semibold text-slate-500 dark:text-white/40 uppercase">Filter Employee:</label>
@@ -144,7 +144,7 @@ export default function AuditsPage() {
 
             return (
               <div key={group.employee_id} className="space-y-3">
-                {/* Employee Header (Collapsible Accordion Trigger) */}
+                {}
                 <Card
                   onClick={() => toggleEmployee(group.employee_id)}
                   className="p-4 flex items-center justify-between cursor-pointer hover:border-brand/40 transition-all bg-slate-50/50 dark:bg-white/[0.01] select-none"
@@ -167,7 +167,7 @@ export default function AuditsPage() {
                   </div>
                 </Card>
 
-                {/* Sub-list of employee call audits */}
+                {}
                 {isExpanded && (
                   <div className="pl-6 border-l border-slate-200 dark:border-white/[0.06] space-y-3 ml-5">
                     {group.audits.map((audit) => {

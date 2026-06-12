@@ -23,7 +23,7 @@ export default function AuditDetailPage() {
   const wsContainerRef = useRef(null)
   const wavesurferRef = useRef(null)
 
-  // Format seconds to MM:SS
+  
   const formatTime = (secs) => {
     if (isNaN(secs)) return '00:00'
     const minutes = Math.floor(secs / 60)
@@ -31,7 +31,7 @@ export default function AuditDetailPage() {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
   }
 
-  // Load Audit Data, AI analysis and User Feedback
+  
   useEffect(() => {
     const loadAllDetails = async () => {
       setLoading(true)
@@ -39,7 +39,7 @@ export default function AuditDetailPage() {
         const auditData = await auditsAPI.getOne(id)
         setAudit(auditData)
 
-        // Load AI analysis if completed
+        
         if (auditData.status === 'completed' || auditData.status === 'processing') {
           const aiData = await aiAPI.getAnalysis(id)
           if (aiData?.analysis) {
@@ -47,7 +47,7 @@ export default function AuditDetailPage() {
           }
         }
 
-        // Load feedback submissions
+        
         const feedbackSubmissions = await feedbackAPI.getMySubmissions()
         const matchedFeedback = feedbackSubmissions.submissions?.find(
           (sub) => String(sub.audit?.id) === String(id)
@@ -56,7 +56,7 @@ export default function AuditDetailPage() {
           setFeedback(matchedFeedback)
         }
 
-        // Fetch secure audio as a blob to pass Auth headers safely
+        
         if (auditData.recording?.has_file) {
           const response = await api.get(`/api/recordings/stream/${id}`, {
             responseType: 'blob'
@@ -78,7 +78,7 @@ export default function AuditDetailPage() {
     }
   }, [id])
 
-  // Initialize WaveSurfer
+  
   useEffect(() => {
     if (!wsContainerRef.current || !audioSrc) return
 
@@ -88,7 +88,7 @@ export default function AuditDetailPage() {
       progressColor: 'var(--brand)',
       height: 60,
       cursorWidth: 1,
-      cursorColor: '#53161D', // Bordeaux Velvet cursor
+      cursorColor: '#53161D', 
       barWidth: 2,
       barGap: 3,
       barRadius: 2,
@@ -97,7 +97,7 @@ export default function AuditDetailPage() {
 
     wavesurferRef.current.load(audioSrc)
 
-    // Event listeners
+    
     wavesurferRef.current.on('ready', () => {
       setDuration(formatTime(wavesurferRef.current.getDuration()))
     })
@@ -153,7 +153,7 @@ export default function AuditDetailPage() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Back navigation */}
+      {}
       <div className="flex items-center gap-3">
         <Link to="/audits" className="w-8 h-8 rounded-xl border border-slate-200 dark:border-white/[0.08] flex items-center justify-center text-slate-500 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-all">
           <ChevronLeft size={16} />
@@ -164,7 +164,7 @@ export default function AuditDetailPage() {
         />
       </div>
 
-      {/* Header Info Grid */}
+      {}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
@@ -211,7 +211,7 @@ export default function AuditDetailPage() {
         </Card>
       </div>
 
-      {/* Audio Player and Waveform */}
+      {}
       <Card className="p-6 relative overflow-hidden">
         <h3 className="font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
           <Volume2 size={16} className="text-brand" /> Secure Call Player
@@ -219,10 +219,10 @@ export default function AuditDetailPage() {
 
         {audit.recording?.has_file ? (
           <div className="space-y-4">
-            {/* Waveform wrapper */}
+            {}
             <div ref={wsContainerRef} className="rounded-xl bg-slate-50 dark:bg-black/20 p-4 border border-slate-100 dark:border-white/[0.04]" />
             
-            {/* Player controls */}
+            {}
             <div className="flex items-center justify-between gap-4">
               <button
                 onClick={handlePlayPause}
@@ -246,10 +246,10 @@ export default function AuditDetailPage() {
         )}
       </Card>
 
-      {/* AI Analysis Insights */}
+      {}
       {aiAnalysis ? (
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* AI Metrics column */}
+          {}
           <div className="space-y-6">
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
@@ -280,7 +280,7 @@ export default function AuditDetailPage() {
               </div>
             </Card>
 
-            {/* AI Actionable suggestions */}
+            {}
             {aiAnalysis.ai_suggestions && aiAnalysis.ai_suggestions.length > 0 && (
               <Card className="p-6 space-y-4">
                 <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
@@ -298,7 +298,7 @@ export default function AuditDetailPage() {
             )}
           </div>
 
-          {/* AI Call Summary and key takeaways */}
+          {}
           <div className="lg:col-span-2 space-y-6">
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
@@ -338,7 +338,7 @@ export default function AuditDetailPage() {
               )}
             </Card>
 
-            {/* Transcription Dialogue view */}
+            {}
             {aiAnalysis.transcription && (
               <Card className="p-6 space-y-4">
                 <h3 className="font-semibold text-slate-800 dark:text-white">Full AI-Generated Transcription</h3>
@@ -361,7 +361,7 @@ export default function AuditDetailPage() {
         </Card>
       )}
 
-      {/* User Submitted Feedback details */}
+      {}
       {feedback && (
         <Card className="p-6 space-y-4">
           <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">

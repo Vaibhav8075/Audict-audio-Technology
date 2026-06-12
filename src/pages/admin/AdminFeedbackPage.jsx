@@ -10,7 +10,7 @@ export default function AdminFeedbackPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  // Form Builder state
+  
   const [formTitle, setFormTitle] = useState('Call Quality Feedback')
   const [formDesc, setFormDesc] = useState('Standard feedback form for call audits')
   const [builderQuestions, setBuilderQuestions] = useState([
@@ -19,7 +19,7 @@ export default function AdminFeedbackPage() {
     { question_text: 'What should be improved?', question_type: 'text' }
   ])
 
-  // Submission Detail modal state
+  
   const [selectedSubmission, setSelectedSubmission] = useState(null)
 
   const loadData = async () => {
@@ -106,7 +106,7 @@ export default function AdminFeedbackPage() {
         action={<button type="button" onClick={loadData} className="btn-secondary"><RefreshCw size={15} /> Refresh</button>}
       />
 
-      {/* Dynamic Form Builder */}
+      {}
       <Card className="p-6 space-y-4">
         <h3 className="font-display font-semibold text-slate-800 dark:text-white flex items-center gap-2">
           <MessageSquare size={18} className="text-brand" /> Custom Form Builder
@@ -182,7 +182,7 @@ export default function AdminFeedbackPage() {
         </form>
       </Card>
 
-      {/* Database logs */}
+      {}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
           <h3 className="font-display font-semibold text-slate-800 dark:text-white mb-4">Active Forms History</h3>
@@ -247,11 +247,11 @@ export default function AdminFeedbackPage() {
         </Card>
       </div>
 
-      {/* Submission Detail Modal */}
+      {}
       {selectedSubmission && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/[0.08] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            {/* Modal header */}
+            {}
             <div className="p-4 border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between">
               <div>
                 <h4 className="font-display font-bold text-slate-800 dark:text-white">
@@ -270,9 +270,9 @@ export default function AdminFeedbackPage() {
               </button>
             </div>
 
-            {/* Modal content */}
+            {}
             <div className="p-6 overflow-y-auto space-y-5">
-              {/* Employee Meta */}
+              {}
               <div className="grid grid-cols-2 gap-4 text-xs p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] rounded-xl">
                 <div>
                   <span className="text-slate-400 dark:text-white/30 uppercase font-semibold text-[9px] block">Submitted By</span>
@@ -284,7 +284,7 @@ export default function AdminFeedbackPage() {
                 </div>
               </div>
 
-              {/* QA List */}
+              {}
               <div className="space-y-4">
                 <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase block tracking-wider">
                   Self-Evaluation Form Answers
@@ -334,7 +334,7 @@ export default function AdminFeedbackPage() {
                 )}
               </div>
 
-              {/* Overall Ratings & Comments */}
+              {}
               <div className="pt-4 border-t border-slate-200 dark:border-white/[0.06] space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-wider">
@@ -356,7 +356,7 @@ export default function AdminFeedbackPage() {
               </div>
             </div>
 
-            {/* Modal footer */}
+            {}
             <div className="p-4 bg-slate-50 dark:bg-white/[0.01] border-t border-slate-200 dark:border-white/[0.06] flex justify-end">
               <button
                 type="button"

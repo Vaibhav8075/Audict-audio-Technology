@@ -1,12 +1,8 @@
-/**
- * ui/index.jsx
- * Shared UI components used across the app
- */
+
 
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 
-// ─── Card ─────────────────────────────────────────────────────────────────────
 export function Card({ children, className, hover = false, onClick }) {
   return (
     <motion.div
@@ -24,7 +20,6 @@ export function Card({ children, className, hover = false, onClick }) {
   )
 }
 
-// ─── Badge ────────────────────────────────────────────────────────────────────
 const badgeVariants = {
   green:    'badge-green',
   yellow:   'badge-yellow',
@@ -51,7 +46,6 @@ export function Badge({ variant = 'gray', children, className }) {
   )
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
 export function Skeleton({ className, lines = 1 }) {
   if (lines > 1) {
     return (
@@ -68,7 +62,6 @@ export function Skeleton({ className, lines = 1 }) {
   return <div className={clsx('skeleton', className)} />
 }
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
 export function StatCard({ label, value, icon: Icon, trend, color = 'orange', loading }) {
   const colorMap = {
     orange: 'text-brand-400 bg-brand-500/10 border-brand-500/20',
@@ -115,7 +108,6 @@ export function StatCard({ label, value, icon: Icon, trend, color = 'orange', lo
   )
 }
 
-// ─── Empty State ──────────────────────────────────────────────────────────────
 export function EmptyState({ icon: Icon, title, description, action }) {
   return (
     <motion.div
@@ -133,7 +125,6 @@ export function EmptyState({ icon: Icon, title, description, action }) {
   )
 }
 
-// ─── Section Header ───────────────────────────────────────────────────────────
 export function SectionHeader({ title, subtitle, action }) {
   return (
     <div className="flex items-start justify-between mb-5">
@@ -146,7 +137,6 @@ export function SectionHeader({ title, subtitle, action }) {
   )
 }
 
-// ─── Spinner ──────────────────────────────────────────────────────────────────
 export function Spinner({ size = 20, className }) {
   return (
     <svg
@@ -161,7 +151,6 @@ export function Spinner({ size = 20, className }) {
   )
 }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
 export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
   const sizeMap = {
     sm: 'max-w-md',
@@ -205,7 +194,6 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
   )
 }
 
-// ─── Progress Bar ─────────────────────────────────────────────────────────────
 export function ProgressBar({ value, max = 100, color = 'orange', showLabel = false }) {
   const percent = Math.min(100, Math.max(0, (value / max) * 100))
   const colorMap = {

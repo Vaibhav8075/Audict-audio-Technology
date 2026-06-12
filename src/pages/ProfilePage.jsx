@@ -10,12 +10,12 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Update Profile details state
+  
   const [fullName, setFullName] = useState('')
   const [department, setDepartment] = useState('')
   const [updatingProfile, setUpdatingProfile] = useState(false)
 
-  // Change Password state
+  
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -53,7 +53,7 @@ export default function ProfilePage() {
       })
       toast.success('Profile details updated successfully')
       
-      // Update global auth store state
+      
       if (authUser) {
         setUser({
           ...authUser,
@@ -117,7 +117,7 @@ export default function ProfilePage() {
         <Card className="p-6 text-center text-slate-500">Failed to load profile. Please sign out and sign back in.</Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-3">
-          {/* Left Column: Avatar & Meta details */}
+          {}
           <div className="space-y-6 md:col-span-1">
             <Card className="p-6 flex flex-col items-center text-center space-y-4">
               <div className="w-20 h-20 rounded-full bg-brand-500/20 border border-brand-500/30 flex items-center justify-center shadow-lg">
@@ -164,9 +164,9 @@ export default function ProfilePage() {
             </Card>
           </div>
 
-          {/* Right Column: Update forms */}
+          {}
           <div className="space-y-6 md:col-span-2">
-            {/* Update details form */}
+            {}
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
                 <Save size={16} className="text-brand" /> Edit Personal Information
@@ -202,7 +202,7 @@ export default function ProfilePage() {
               </form>
             </Card>
 
-            {/* Change Password form */}
+            {}
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
                 <Lock size={16} className="text-brand" /> Change Account Password

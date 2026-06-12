@@ -22,7 +22,7 @@ export default function AIInsightsPage() {
       ])
       setStats(aiData)
       
-      // Filter audits that actually have AI summaries processed
+      
       const completedAudits = auditData.audits?.filter(
         (a) => a.ai_summary || a.status === 'completed'
       ) || []
@@ -74,7 +74,7 @@ export default function AIInsightsPage() {
     )
   }
 
-  // Calculate sentiment percentages
+  
   const total = stats.total_analyzed
   const posPct = Math.round((stats.sentiment_breakdown?.positive / total) * 100) || 0
   const neuPct = Math.round((stats.sentiment_breakdown?.neutral / total) * 100) || 0
@@ -88,7 +88,7 @@ export default function AIInsightsPage() {
         action={<button type="button" onClick={loadAiInsights} className="btn-secondary"><RefreshCw size={15} /> Refresh</button>}
       />
 
-      {/* Aggregate Stats Cards */}
+      {}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total Analyzed Calls"
@@ -117,9 +117,9 @@ export default function AIInsightsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column: Sentiments & Keywords */}
+        {}
         <div className="space-y-6">
-          {/* Sentiment Breakdown card */}
+          {}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
               <Smile size={16} className="text-brand" /> Sentiment Distribution
@@ -158,7 +158,7 @@ export default function AIInsightsPage() {
             </div>
           </Card>
 
-          {/* Keywords & Topics Cloud */}
+          {}
           {stats.top_keywords && stats.top_keywords.length > 0 && (
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
@@ -183,9 +183,9 @@ export default function AIInsightsPage() {
           )}
         </div>
 
-        {/* Right Column: Key customer issues and detailed list */}
+        {}
         <div className="lg:col-span-2 space-y-6">
-          {/* Action Required: Critical Alerts */}
+          {}
           {stats.needs_attention && stats.needs_attention.length > 0 && (
             <Card className="p-6 border-red-500/10 dark:border-red-500/20 bg-red-500/[0.02]">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2 mb-1">
@@ -217,7 +217,7 @@ export default function AIInsightsPage() {
             </Card>
           )}
 
-          {/* Top recurring complaints */}
+          {}
           {stats.top_issues && stats.top_issues.length > 0 && (
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
@@ -241,7 +241,7 @@ export default function AIInsightsPage() {
             </Card>
           )}
 
-          {/* List of processed audits */}
+          {}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
               <Sparkles size={16} className="text-brand" /> Processed Call Reports

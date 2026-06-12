@@ -148,7 +148,7 @@ export default function AdminAuditsPage() {
         </form>
       </Card>
 
-      {/* Employee filter dropdown */}
+      {}
       {employees.length > 0 && (
         <Card className="p-4 flex items-center gap-3">
           <label className="text-xs font-semibold text-slate-500 dark:text-white/40 uppercase">Filter Employee:</label>

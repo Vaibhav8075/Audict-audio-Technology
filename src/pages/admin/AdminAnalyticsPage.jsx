@@ -66,17 +66,17 @@ export default function AdminAnalyticsPage() {
     )
   }
 
-  // Format status data for Recharts BarChart
+  
   const statusData = Object.entries(data.status_breakdown || {}).map(([status, count]) => ({
     name: status.charAt(0).toUpperCase() + status.slice(1),
     count
   }))
 
-  // Format sentiment data for Recharts PieChart
+  
   const sentimentColors = {
-    positive: '#10b981', // emerald-500
-    neutral: '#3b82f6',  // blue-500
-    negative: '#ef4444'  // red-500
+    positive: '#10b981', 
+    neutral: '#3b82f6',  
+    negative: '#ef4444'  
   }
 
   const sentimentData = Object.entries(data.sentiment_breakdown || {}).map(([sentiment, count]) => ({
@@ -93,7 +93,7 @@ export default function AdminAnalyticsPage() {
         action={<button type="button" onClick={loadAnalytics} className="btn-secondary"><RefreshCw size={15} /> Refresh</button>}
       />
 
-      {/* Aggregate Score Cards */}
+      {}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
           label="Average Call Quality"
@@ -115,9 +115,9 @@ export default function AdminAnalyticsPage() {
         />
       </div>
 
-      {/* Recharts Charts Grid */}
+      {}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Daily Audit volume over 7 days */}
+        {}
         <Card className="lg:col-span-2 p-6 space-y-4">
           <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
             <Shield size={16} className="text-brand" /> Audit Activity Volume (Last 7 Days)
@@ -142,7 +142,7 @@ export default function AdminAnalyticsPage() {
           </div>
         </Card>
 
-        {/* Sentiment PieChart */}
+        {}
         <Card className="p-6 space-y-4">
           <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
             <Smile size={16} className="text-brand" /> AI Sentiment Distribution
@@ -174,7 +174,7 @@ export default function AdminAnalyticsPage() {
             )}
           </div>
 
-          {/* Custom legends */}
+          {}
           <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-white/[0.04] text-center text-[10px] font-semibold">
             <div className="text-emerald-500 flex flex-col items-center">
               <Smile size={15} />
@@ -196,7 +196,7 @@ export default function AdminAnalyticsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Status breakdown bar chart */}
+        {}
         <Card className="p-6 space-y-4">
           <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
             <Sparkles size={16} className="text-brand" /> Audit Progress Schedules
@@ -223,7 +223,7 @@ export default function AdminAnalyticsPage() {
           </div>
         </Card>
 
-        {/* Custom statistics overview details */}
+        {}
         <Card className="p-6 space-y-4">
           <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
             <TrendingUp size={16} className="text-brand" /> Operational Highlights
