@@ -24,3 +24,18 @@ dist-ssr
 *.sw?
 
 .env
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# Databases
+*.db
+*.sqlite3
+
+# Audio Storage
+backend/storage/
+
