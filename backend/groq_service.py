@@ -64,7 +64,7 @@ class GroqService:
         if not self.client:
             return self._mock_analysis()
         
-        prompt = f"""You are an expert call center quality analyst. Analyze the following call transcript and provide a comprehensive JSON analysis.
+        prompt = f"""You are an expert call center quality analyst for DCM. Analyze the following call transcript and provide a comprehensive JSON analysis.
 
 TRANSCRIPT:
 {transcript[:4000]}  
@@ -88,8 +88,13 @@ Return ONLY valid JSON with this exact structure (no markdown, no extra text):
 
 Scoring guidelines:
 - sentiment score: -1.0 (very negative) to 1.0 (very positive)
-- call_quality_score: 0-100 based on clarity, professionalism, resolution
-- customer_satisfaction_score: 0-100 based on customer tone and outcomes
+- customer_satisfaction_score: 0-100 based on customer tone, sentiment, and outcomes.
+- call_quality_score: 0-100. Calculate this score based on how well the agent performed across these DCM Quality Audit rubrics:
+  1. Caller Identification: Welcoming the customer warmly, confirming name/code/village/mobile.
+  2. Professionalism: Active listening, appropriate tone/empathy, clear communication, and prompt replies.
+  3. Delivery: Providing accurate and right information.
+  4. Ticket Raising: Raising genuine tickets correctly when required.
+  5. Outcome: Achieving a successful call resolution/outcome.
 """
         
         try:
