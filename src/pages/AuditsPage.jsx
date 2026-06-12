@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import { Calendar, FileAudio, Mic, RefreshCw, Lock, ChevronDown, ChevronUp, User } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { auditsAPI } from '../api.js'
@@ -12,6 +12,7 @@ export default function AuditsPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
   const [expandedEmployees, setExpandedEmployees] = useState({})
   const { user } = useAuthStore()
+  const { searchQuery } = useOutletContext() || { searchQuery: '' }
 
   const loadAudits = async () => {
     setLoading(true)
@@ -67,11 +68,23 @@ export default function AuditsPage() {
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
   }, [audits])
 
-  // Filter audits based on selected dropdown value
+  // Filter audits based on selected dropdown value and search query
   const filteredAudits = useMemo(() => {
-    if (!selectedEmployeeId) return audits
-    return audits.filter((a) => String(a.employee_id) === String(selectedEmployeeId))
-  }, [audits, selectedEmployeeId])
+    let result = audits
+    if (selectedEmployeeId) {
+      result = result.filter((a) => String(a.employee_id) === String(selectedEmployeeId))
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter((a) => 
+        a.audit_id?.toLowerCase().includes(q) ||
+        a.client_name?.toLowerCase().includes(q) ||
+        a.employee_name?.toLowerCase().includes(q) ||
+        a.status?.toLowerCase().includes(q)
+      )
+    }
+    return result
+  }, [audits, selectedEmployeeId, searchQuery])
 
   // Group filtered audits by employee
   const groupedAudits = useMemo(() => {
