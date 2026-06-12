@@ -14,7 +14,7 @@ export default function AdminUsersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   
-  // Create user form state
+  
   const [form, setForm] = useState({
     email: '',
     full_name: '',
@@ -77,7 +77,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  // Filter users based on search query
+  
   const filteredUsers = users.filter(user => 
     user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -104,7 +104,7 @@ export default function AdminUsersPage() {
         }
       />
 
-      {/* Filter and search bar */}
+      {}
       <Card className="p-4 flex items-center gap-3">
         <Search size={16} className="text-slate-400 dark:text-white/30" />
         <input
@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
         />
       </Card>
 
-      {/* User listing table */}
+      {}
       <Card className="p-6">
         {loading ? (
           <Skeleton className="h-60 w-full rounded-xl" />
@@ -179,7 +179,7 @@ export default function AdminUsersPage() {
         )}
       </Card>
 
-      {/* Creation Modal */}
+      {}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create User Credentials">
         <form onSubmit={handleCreateUser} className="space-y-4">
           <div>

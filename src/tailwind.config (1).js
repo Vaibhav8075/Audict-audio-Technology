@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+
 export default {
   content: [
     "./index.html",
@@ -8,28 +8,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        // DCM Brand Colors - Orange Accent
+        
         brand: {
           50:  '#fff7ed',
           100: '#ffedd5',
           200: '#fed7aa',
           300: '#fdba74',
           400: '#fb923c',
-          500: '#f97316',  // Primary brand orange
+          500: '#f97316',  
           600: '#ea580c',
           700: '#c2410c',
           800: '#9a3412',
           900: '#7c2d12',
         },
-        // Dark theme surface colors
+        
         surface: {
-          900: '#0a0a0f',  // Deepest background
-          800: '#111118',  // Main background
-          750: '#16161f',  // Sidebar
-          700: '#1c1c28',  // Cards
-          600: '#23232f',  // Elevated cards
-          500: '#2d2d3d',  // Borders/dividers
-          400: '#3d3d52',  // Muted elements
+          900: '#0a0a0f',  
+          800: '#111118',  
+          750: '#16161f',  
+          700: '#1c1c28',  
+          600: '#23232f',  
+          500: '#2d2d3d',  
+          400: '#3d3d52',  
         }
       },
       fontFamily: {

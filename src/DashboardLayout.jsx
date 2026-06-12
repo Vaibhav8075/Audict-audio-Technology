@@ -1,7 +1,4 @@
-/**
- * DashboardLayout.jsx
- * Main shell: fixed sidebar + top navbar + scrollable content area
- */
+
 
 import { useState, useEffect, useMemo } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
@@ -99,7 +96,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Notifications State
+  
   const [notifications, setNotifications] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -120,7 +117,7 @@ export default function DashboardLayout() {
       
       const list = []
       auditsData.audits?.slice(0, 8).forEach(a => {
-        // If own audit, notify employee
+        
         if (user.role === 'employee' && !a.is_own_audit) return
 
         if (a.status === 'completed') {
@@ -144,17 +141,17 @@ export default function DashboardLayout() {
         })
       })
 
-      // Sort by date desc
+      
       list.sort((x, y) => y.date - x.date)
       setNotifications(list)
     } catch (err) {
-      // Ignore background fetch error
+      
     }
   }
 
   useEffect(() => {
     loadNotifications()
-    // Poll notifications every 30 seconds for real-time update feel
+    
     const interval = setInterval(loadNotifications, 30000)
     return () => clearInterval(interval)
   }, [user])
@@ -166,7 +163,7 @@ export default function DashboardLayout() {
   const markAllAsRead = () => {
     notifications.forEach(n => {
       localStorage.setItem(`notif-read-${n.id}`, 'true')
-      // Backup keys
+      
       localStorage.setItem(`notif-read-ai-${n.id.replace('ai-', '')}`, 'true')
       localStorage.setItem(`notif-read-assign-${n.id.replace('assign-', '')}`, 'true')
     })
@@ -176,7 +173,7 @@ export default function DashboardLayout() {
 
   const handleNotifClick = (n) => {
     localStorage.setItem(`notif-read-${n.id}`, 'true')
-    // Backup keys
+    
     localStorage.setItem(`notif-read-ai-${n.id.replace('ai-', '')}`, 'true')
     localStorage.setItem(`notif-read-assign-${n.id.replace('assign-', '')}`, 'true')
     
@@ -198,7 +195,7 @@ export default function DashboardLayout() {
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: 'var(--surface-bg)' }}>
 
-      {/* ── Mobile overlay ── */}
+      {}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -211,7 +208,7 @@ export default function DashboardLayout() {
         )}
       </AnimatePresence>
 
-      {/* ── Sidebar ── */}
+      {}
       <motion.aside
         animate={{ width: sidebarWidth }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -225,7 +222,7 @@ export default function DashboardLayout() {
           borderColor: 'var(--surface-border)',
         }}
       >
-        {/* Logo area */}
+        {}
         <div className="flex items-center gap-3 px-4 h-16 border-b border-slate-200 dark:border-white/[0.06] flex-shrink-0">
           <div className="w-8 h-8 rounded-xl bg-brand-500 flex items-center justify-center flex-shrink-0 shadow-orange-glow">
             <Mic size={16} className="text-white" />
@@ -244,7 +241,7 @@ export default function DashboardLayout() {
             )}
           </AnimatePresence>
 
-          {/* Collapse toggle - desktop only */}
+          {}
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="ml-auto hidden lg:flex w-6 h-6 rounded-lg items-center justify-center text-slate-400 dark:text-white/30 hover:text-slate-700 dark:hover:text-white/70 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all"
@@ -255,7 +252,7 @@ export default function DashboardLayout() {
             />
           </button>
 
-          {/* Mobile close */}
+          {}
           <button
             onClick={() => setMobileOpen(false)}
             className="ml-auto lg:hidden text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80"
@@ -264,14 +261,14 @@ export default function DashboardLayout() {
           </button>
         </div>
 
-        {/* Nav links */}
+        {}
         <nav className="flex-1 overflow-y-auto py-3 space-y-0.5">
           {navItems.map((item, i) => (
             <NavItem key={i} item={item} collapsed={collapsed} />
           ))}
         </nav>
 
-        {/* User section */}
+        {}
         <div className="border-t border-slate-200 dark:border-white/[0.06] p-3 flex-shrink-0">
           <div className={clsx(
             'flex items-center gap-3 p-2 rounded-xl',
@@ -310,10 +307,10 @@ export default function DashboardLayout() {
         </div>
       </motion.aside>
 
-      {/* ── Main content ── */}
+      {}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
 
-        {/* Top navbar */}
+        {}
         <header
           className="h-16 flex items-center gap-4 px-6 border-b flex-shrink-0"
           style={{
@@ -322,7 +319,7 @@ export default function DashboardLayout() {
             borderColor: 'var(--surface-border)'
           }}
         >
-          {/* Mobile hamburger */}
+          {}
           <button
             onClick={() => setMobileOpen(true)}
             className="lg:hidden text-slate-500 dark:text-white/50 hover:text-slate-800 dark:hover:text-white/80 mr-2"
@@ -330,7 +327,7 @@ export default function DashboardLayout() {
             <Menu size={20} />
           </button>
 
-          {/* Search bar */}
+          {}
           <div className="flex-1 max-w-sm hidden sm:flex items-center gap-3 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/[0.07] bg-slate-50 dark:bg-white/[0.03] focus-within:border-brand-500/50 transition-all">
             <Search size={14} className="text-slate-400 dark:text-white/30" />
             <input
@@ -343,7 +340,7 @@ export default function DashboardLayout() {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            {/* Theme toggle */}
+            {}
             <button
               onClick={toggleTheme}
               className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 dark:text-white/40 hover:text-slate-800 dark:hover:text-white/80 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-all"
@@ -351,7 +348,7 @@ export default function DashboardLayout() {
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
 
-            {/* Notifications */}
+            {}
             <div className="relative">
               <button
                 onClick={() => setNotifOpen(!notifOpen)}
@@ -366,7 +363,7 @@ export default function DashboardLayout() {
               <AnimatePresence>
                 {notifOpen && (
                   <>
-                    {/* Click-away backdrop */}
+                    {}
                     <div className="fixed inset-0 z-30" onClick={() => setNotifOpen(false)} />
                     
                     <motion.div
@@ -428,7 +425,7 @@ export default function DashboardLayout() {
               </AnimatePresence>
             </div>
 
-            {/* Avatar */}
+            {}
             <div className="w-9 h-9 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center cursor-pointer hover:bg-brand-500/30 transition-all">
               <span className="text-brand-600 dark:text-brand-400 font-semibold text-sm">
                 {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
@@ -437,7 +434,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        {/* Page content */}
+        {}
         <main className="flex-1 overflow-y-auto p-6">
           <motion.div
             key={location.pathname}

@@ -66,7 +66,7 @@ export default function AdminPage() {
         action={<button type="button" onClick={loadAdminDashboard} className="btn-secondary"><RefreshCw size={15} /> Refresh</button>}
       />
 
-      {/* Aggregate Overview Metrics */}
+      {}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Registered Employees"
@@ -94,9 +94,9 @@ export default function AdminPage() {
         />
       </div>
 
-      {/* Quick Action Center and System Logs */}
+      {}
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Navigation Actions Panel */}
+        {}
         <div className="space-y-6">
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold text-slate-800 dark:text-white">Admin Quick Actions</h3>
@@ -124,7 +124,7 @@ export default function AdminPage() {
             </div>
           </Card>
 
-          {/* Export card */}
+          {}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
               <Download size={16} className="text-brand" /> Data Reports Export
@@ -141,7 +141,7 @@ export default function AdminPage() {
           </Card>
         </div>
 
-        {/* Access logs tracking */}
+        {}
         <div className="lg:col-span-2">
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
