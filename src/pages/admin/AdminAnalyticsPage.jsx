@@ -74,9 +74,9 @@ export default function AdminAnalyticsPage() {
 
   
   const sentimentColors = {
-    positive: '#10b981', 
-    neutral: '#3b82f6',  
-    negative: '#ef4444'  
+    positive: 'url(#colorPositive)', 
+    neutral: 'url(#colorNeutral)',  
+    negative: 'url(#colorNegative)'  
   }
 
   const sentimentData = Object.entries(data.sentiment_breakdown || {}).map(([sentiment, count]) => ({
@@ -127,16 +127,10 @@ export default function AdminAnalyticsPage() {
           <div className="h-64 w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data.daily_trend || []} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--brand)" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="var(--brand)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickLine={false} />
                 <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="count" stroke="var(--brand)" strokeWidth={2} fillOpacity={1} fill="url(#colorTrend)" />
+                <Area type="monotone" dataKey="count" stroke="var(--brand)" strokeWidth={2} fillOpacity={1} fill="rgba(203, 185, 164, 0.08)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -155,6 +149,20 @@ export default function AdminAnalyticsPage() {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
+                  <defs>
+                    <linearGradient id="colorPositive" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#b4c4ae" />
+                      <stop offset="100%" stopColor="#7d8c78" />
+                    </linearGradient>
+                    <linearGradient id="colorNeutral" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#aabccf" />
+                      <stop offset="100%" stopColor="#677786" />
+                    </linearGradient>
+                    <linearGradient id="colorNegative" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#bd555e" />
+                      <stop offset="100%" stopColor="#53161d" />
+                    </linearGradient>
+                  </defs>
                   <Pie
                     data={sentimentData}
                     cx="50%"
@@ -176,17 +184,17 @@ export default function AdminAnalyticsPage() {
 
           {}
           <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-white/[0.04] text-center text-[10px] font-semibold">
-            <div className="text-emerald-500 flex flex-col items-center">
+            <div className="text-sageGreen dark:text-sageGreen/90 flex flex-col items-center">
               <Smile size={15} />
               <span className="text-slate-500 dark:text-white/60 mt-1">Positive</span>
               <span className="text-sm font-bold mt-0.5">{data.sentiment_breakdown?.positive ?? 0}</span>
             </div>
-            <div className="text-blue-500 flex flex-col items-center">
+            <div className="text-slateBlue dark:text-slateBlue/90 flex flex-col items-center">
               <Meh size={15} />
               <span className="text-slate-500 dark:text-white/60 mt-1">Neutral</span>
               <span className="text-sm font-bold mt-0.5">{data.sentiment_breakdown?.neutral ?? 0}</span>
             </div>
-            <div className="text-red-500 flex flex-col items-center">
+            <div className="text-bordeauxVelvet dark:text-red-300 flex flex-col items-center">
               <Frown size={15} />
               <span className="text-slate-500 dark:text-white/60 mt-1">Negative</span>
               <span className="text-sm font-bold mt-0.5">{data.sentiment_breakdown?.negative ?? 0}</span>
@@ -248,7 +256,7 @@ export default function AdminAnalyticsPage() {
                   {data.summary?.total_feedback ?? 0} responses
                 </span>
               </div>
-              <ProgressBar value={data.summary?.total_audits ? Math.round(((data.summary?.total_feedback ?? 0) / data.summary.total_audits) * 100) : 0} color="green" />
+              <ProgressBar value={data.summary?.total_audits ? Math.round(((data.summary?.total_feedback ?? 0) / data.summary.total_audits) * 100) : 0} color="orange" />
             </div>
             
             <div className="pt-4 border-t border-slate-100 dark:border-white/[0.04] grid grid-cols-2 gap-4 text-center">

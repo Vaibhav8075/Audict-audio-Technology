@@ -21,6 +21,9 @@ export default {
           800: '#9a3412',
           900: '#7c2d12',
         },
+        sageGreen: '#8C9A86',
+        slateBlue: '#7F8E9C',
+        bordeauxVelvet: '#53161D',
         
         surface: {
           900: '#0a0a0f',  

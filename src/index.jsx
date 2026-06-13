@@ -63,13 +63,7 @@ export function Skeleton({ className, lines = 1 }) {
 }
 
 export function StatCard({ label, value, icon: Icon, trend, color = 'orange', loading }) {
-  const colorMap = {
-    orange: 'text-brand-400 bg-brand-500/10 border-brand-500/20',
-    green:  'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
-    blue:   'text-blue-400 bg-blue-500/10 border-blue-500/20',
-    red:    'text-red-400 bg-red-500/10 border-red-500/20',
-    purple: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
-  }
+  const unifiedColorClass = 'text-brand-600 dark:text-brand-400 bg-brand-500/10 border-brand-500/20'
 
   return (
     <Card>
@@ -77,7 +71,7 @@ export function StatCard({ label, value, icon: Icon, trend, color = 'orange', lo
         <div className="flex items-start justify-between mb-3">
           <div className={clsx(
             'w-10 h-10 rounded-xl flex items-center justify-center border',
-            colorMap[color]
+            unifiedColorClass
           )}>
             {Icon && <Icon size={18} />}
           </div>
@@ -85,8 +79,8 @@ export function StatCard({ label, value, icon: Icon, trend, color = 'orange', lo
             <span className={clsx(
               'text-xs font-medium px-2 py-0.5 rounded-full',
               trend >= 0
-                ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-red-500/10 text-red-400'
+                ? 'bg-sageGreen/10 text-sageGreen dark:text-sageGreen/90'
+                : 'bg-bordeauxVelvet/10 text-bordeauxVelvet dark:text-red-300'
             )}>
               {trend >= 0 ? '+' : ''}{trend}%
             </span>
@@ -197,10 +191,10 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
 export function ProgressBar({ value, max = 100, color = 'orange', showLabel = false }) {
   const percent = Math.min(100, Math.max(0, (value / max) * 100))
   const colorMap = {
-    orange: 'bg-brand-500',
-    green:  'bg-emerald-500',
-    red:    'bg-red-500',
-    blue:   'bg-blue-500',
+    orange: 'bg-brand-500 shadow-[0_0_12px_rgba(164,141,120,0.2)]',
+    green:  'bg-[#8c9a86] dark:bg-[#a2b49c] shadow-[0_0_12px_rgba(140,154,134,0.2)]',
+    red:    'bg-[#a9444d] dark:bg-[#c25a64] shadow-[0_0_12px_rgba(169,68,77,0.2)]',
+    blue:   'bg-[#7f8e9c] dark:bg-[#93a5b6] shadow-[0_0_12px_rgba(127,142,156,0.2)]',
   }
 
   return (

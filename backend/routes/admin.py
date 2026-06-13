@@ -7,7 +7,7 @@ from typing import Optional
 from datetime import datetime, timedelta
 import csv, io
 from database.connection import get_db
-from models import User, Audit, Recording, FeedbackAnswer, AIAnalysis, AuditAccessLog, UserRole, AuditStatus, SentimentLabel
+from models import User, Audit, Recording, FeedbackAnswer, AIAnalysis, AuditAccessLog, UserRole, AuditStatus, SentimentLabel, SystemSetting
 from dependencies import get_current_admin
 from auth_utils import get_password_hash
 router = APIRouter()
@@ -125,3 +125,40 @@ async def export_feedback_csv(current_user: User=Depends(get_current_admin), db:
         writer.writerow([s.id, s.audit.audit_id if s.audit else '', s.audit.client_name if s.audit else '', s.submitted_by.full_name if s.submitted_by else '', s.form.title if s.form else '', s.overall_rating or '', s.comments or '', s.submitted_at.isoformat() if s.submitted_at else ''])
     output.seek(0)
     return StreamingResponse(iter([output.getvalue()]), media_type='text/csv', headers={'Content-Disposition': 'attachment; filename=feedback_export.csv'})
+
+class RetentionSettings(BaseModel):
+    retention_days: int
+
+@router.get('/settings/retention')
+async def get_retention_setting(current_user: User=Depends(get_current_admin), db: Session=Depends(get_db)):
+    import os
+    setting = db.query(SystemSetting).filter(SystemSetting.key == 'retention_days').first()
+    days = int(setting.value) if setting else int(os.getenv('RECORDING_EXPIRY_DAYS', '7'))
+    return {'retention_days': days}
+
+@router.post('/settings/retention')
+async def update_retention_setting(data: RetentionSettings, current_user: User=Depends(get_current_admin), db: Session=Depends(get_db)):
+    import os
+    if data.retention_days < 1:
+        raise HTTPException(status_code=400, detail='Retention period must be at least 1 day')
+    
+    setting = db.query(SystemSetting).filter(SystemSetting.key == 'retention_days').first()
+    if not setting:
+        setting = SystemSetting(key='retention_days', value=str(data.retention_days))
+        db.add(setting)
+    else:
+        setting.value = str(data.retention_days)
+    
+    active_recordings = db.query(Recording).filter(Recording.is_expired == False).all()
+    for rec in active_recordings:
+        if rec.uploaded_at:
+            rec.expires_at = rec.uploaded_at + timedelta(days=data.retention_days)
+            if rec.expires_at <= datetime.utcnow():
+                rec.is_expired = True
+                if rec.file_path and os.path.exists(rec.file_path):
+                    try:
+                        os.remove(rec.file_path)
+                    except:
+                        pass
+    db.commit()
+    return {'message': 'Retention settings updated successfully', 'retention_days': data.retention_days}

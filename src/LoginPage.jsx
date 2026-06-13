@@ -48,33 +48,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{ background: 'var(--surface-bg)' }}
     >
-      {}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute -top-40 -left-40 w-96 h-96 rounded-full opacity-20 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #A48D78 0%, transparent 70%)' }}
-        />
-        <div
-          className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full opacity-10 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #CBB9A4 0%, transparent 70%)' }}
-        />
-        {}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(164,141,120,0.5) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(164,141,120,0.5) 1px, transparent 1px)`,
-            backgroundSize: '60px 60px'
-          }}
-        />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md relative z-10"
-      >
+      <div className="w-full max-w-md relative z-10">
         {}
         <div className="text-center mb-8">
           <motion.div
@@ -189,7 +163,7 @@ export default function LoginPage() {
         <p className="text-center text-white/20 text-xs mt-6">
           © 2024 DCM · Audit Intelligence Platform · v1.0
         </p>
-      </motion.div>
+      </div>
     </div>
   )
 }

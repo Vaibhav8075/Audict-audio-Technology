@@ -11,6 +11,8 @@ export default {
         creamedOat: "#E6DAC8",
         porcelainMist: "#F4F1EA",
         featherWhite: "#FAF9F6",
+        sageGreen: "#8C9A86",
+        slateBlue: "#7F8E9C",
 
         
         mochaEarth: "#4B3935",
@@ -57,11 +59,6 @@ export default {
         'xl': '0.875rem',
         '2xl': '1rem',
         '3xl': '1.25rem',
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'mesh': 'radial-gradient(at 40% 20%, rgba(249,115,22,0.05) 0, transparent 50%), radial-gradient(at 80% 0%, rgba(234,88,12,0.03) 0, transparent 50%)',
-      },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',

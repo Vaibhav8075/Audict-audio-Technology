@@ -6,7 +6,12 @@ import { adminAPI, auditsAPI, recordingsAPI } from '../../api.js'
 import { Badge, Card, EmptyState, SectionHeader } from '../../index.jsx'
 
 const createAuditId = () => `AUD-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`
-const createLocalDateTime = () => new Date().toISOString().slice(0, 16)
+const createLocalDateTime = () => {
+  const now = new Date()
+  const offsetMs = now.getTimezoneOffset() * 60 * 1000
+  const local = new Date(now.getTime() - offsetMs)
+  return local.toISOString().slice(0, 16)
+}
 
 export default function AdminAuditsPage() {
   const [audits, setAudits] = useState([])
@@ -81,7 +86,7 @@ export default function AdminAuditsPage() {
         audit_id: form.audit_id,
         client_name: form.client_name,
         employee_id: Number(form.employee_id),
-        call_date: new Date(form.call_date).toISOString(),
+        call_date: form.call_date,
       })
       toast.success('Audit created')
       setForm((current) => ({
@@ -182,7 +187,18 @@ export default function AdminAuditsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-display font-semibold text-slate-800 dark:text-white">{audit.audit_id}</h3>
                     <Badge variant={audit.status}>{audit.status}</Badge>
-                    {audit.recording?.has_file && <Badge variant="green">audio uploaded</Badge>}
+                    {audit.recording && (
+                      audit.recording.is_expired ? (
+                        <Badge variant="gray">audio expired</Badge>
+                      ) : (
+                        <div className="flex gap-1.5 items-center">
+                          <Badge variant="green">audio uploaded</Badge>
+                          {audit.recording.uploaded_week && (
+                            <Badge variant="blue">Week {audit.recording.uploaded_week}</Badge>
+                          )}
+                        </div>
+                      )
+                    )}
                   </div>
                   <p className="text-sm text-slate-600 dark:text-white/60 mt-1">{audit.client_name} - {audit.employee_name}</p>
                   <p className="text-xs text-slate-400 dark:text-white/35 mt-1 flex items-center gap-1">

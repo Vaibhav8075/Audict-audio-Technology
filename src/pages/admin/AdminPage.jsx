@@ -12,16 +12,20 @@ export default function AdminPage() {
   const [logs, setLogs] = useState([])
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [retentionDays, setRetentionDays] = useState(7)
+  const [updatingRetention, setUpdatingRetention] = useState(false)
 
   const loadAdminDashboard = async () => {
     setLoading(true)
     try {
-      const [logsData, analyticsData] = await Promise.all([
+      const [logsData, analyticsData, retentionData] = await Promise.all([
         adminAPI.getLogs({ per_page: 10 }),
-        adminAPI.getAnalytics()
+        adminAPI.getAnalytics(),
+        adminAPI.getRetentionSettings()
       ])
       setLogs(logsData.logs || [])
       setSummary(analyticsData.summary || null)
+      setRetentionDays(retentionData.retention_days ?? 7)
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Could not load admin panel data')
     } finally {
@@ -39,6 +43,19 @@ export default function AdminPage() {
       toast.success('Preparing CSV feedback export...')
     } catch (error) {
       toast.error('Could not export feedback data')
+    }
+  }
+
+  const handleUpdateRetention = async () => {
+    setUpdatingRetention(true)
+    try {
+      await adminAPI.updateRetentionSettings(Number(retentionDays))
+      toast.success('Audio retention policy updated successfully')
+      await loadAdminDashboard()
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not update retention policy')
+    } finally {
+      setUpdatingRetention(false)
     }
   }
 
@@ -139,6 +156,32 @@ export default function AdminPage() {
               <Download size={15} /> Export Feedback Responses (CSV)
             </button>
           </Card>
+
+          {/* Audio Retention Policy settings */}
+          <Card className="p-6 space-y-4">
+            <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+              <Clock size={16} className="text-brand" /> Audio Retention Policy
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-white/40 leading-relaxed">
+              Configure the number of days call audio files are stored in active storage before they expire.
+            </p>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="1"
+                value={retentionDays}
+                onChange={e => setRetentionDays(e.target.value)}
+                className="input-field py-1.5 px-3 max-w-[100px] text-center"
+              />
+              <button
+                onClick={handleUpdateRetention}
+                disabled={updatingRetention}
+                className="btn-primary flex-1 text-xs justify-center"
+              >
+                {updatingRetention ? 'Saving...' : 'Update Policy'}
+              </button>
+            </div>
+          </Card>
         </div>
 
         {}
@@ -177,7 +220,7 @@ export default function AdminPage() {
                           <td className="px-4 py-3">{log.user}</td>
                           <td className="px-4 py-3 capitalize">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                              log.action === 'play' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                              log.action === 'play' ? 'bg-sageGreen/10 text-sageGreen dark:text-sageGreen/90 border border-sageGreen/20' : 'bg-slateBlue/10 text-slateBlue dark:text-slateBlue/90 border border-slateBlue/20'
                             }`}>
                               {log.action}
                             </span>

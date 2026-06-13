@@ -113,7 +113,7 @@ export default function AuditsPage() {
       />
 
       {}
-      {uniqueEmployees.length >= 1 && (
+      {uniqueEmployees.length > 1 && (
         <Card className="p-4 flex items-center gap-3">
           <label className="text-xs font-semibold text-slate-500 dark:text-white/40 uppercase">Filter Employee:</label>
           <select
@@ -180,11 +180,16 @@ export default function AuditsPage() {
                               <div className="flex flex-wrap items-center gap-2">
                                 <h3 className="font-display font-semibold text-slate-800 dark:text-white text-xs">{audit.audit_id}</h3>
                                 <Badge variant={audit.status}>{audit.status}</Badge>
-                                {audit.recording?.has_file ? (
+                                {audit.recording ? (
                                   audit.recording?.is_expired ? (
-                                    <Badge variant="gray">audio expired (7d)</Badge>
+                                    <Badge variant="gray">audio expired</Badge>
                                   ) : (
-                                    <Badge variant="green">audio ready</Badge>
+                                    <div className="flex gap-1.5 items-center">
+                                      <Badge variant="green">audio ready</Badge>
+                                      {audit.recording.uploaded_week && (
+                                        <Badge variant="blue">Week {audit.recording.uploaded_week}</Badge>
+                                      )}
+                                    </div>
                                   )
                                 ) : (
                                   <Badge variant="gray">no audio</Badge>

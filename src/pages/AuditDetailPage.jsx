@@ -165,7 +165,7 @@ export default function AuditDetailPage() {
       </div>
 
       {}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Card className="p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
             <Mic size={18} />
@@ -207,6 +207,18 @@ export default function AuditDetailPage() {
           <div>
             <p className="text-[10px] text-slate-400 dark:text-white/35 font-medium uppercase">Audit Status</p>
             <Badge variant={audit.status} className="mt-0.5">{audit.status}</Badge>
+          </div>
+        </Card>
+
+        <Card className="p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center text-brand">
+            <Calendar size={18} />
+          </div>
+          <div>
+            <p className="text-[10px] text-slate-400 dark:text-white/35 font-medium uppercase">Upload Week</p>
+            <p className="font-semibold text-slate-800 dark:text-white text-sm">
+              {audit.recording?.uploaded_week ? `Week ${audit.recording.uploaded_week}, ${audit.recording.uploaded_year}` : 'N/A'}
+            </p>
           </div>
         </Card>
       </div>
@@ -268,9 +280,9 @@ export default function AuditDetailPage() {
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
                     <span className="text-slate-500 dark:text-white/60">Customer Satisfaction (CSAT)</span>
-                    <span className="text-emerald-500">{aiAnalysis.customer_satisfaction_score ?? 0}%</span>
+                    <span className="text-brand">{aiAnalysis.customer_satisfaction_score ?? 0}%</span>
                   </div>
-                  <ProgressBar value={aiAnalysis.customer_satisfaction_score ?? 0} color="green" />
+                  <ProgressBar value={aiAnalysis.customer_satisfaction_score ?? 0} color="orange" />
                 </div>
               </div>
 
@@ -324,12 +336,12 @@ export default function AuditDetailPage() {
 
               {aiAnalysis.identified_issues && aiAnalysis.identified_issues.length > 0 && (
                 <div className="pt-4 border-t border-slate-100 dark:border-white/[0.04]">
-                  <h4 className="text-xs font-semibold text-red-500 uppercase mb-2 flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold text-bordeauxVelvet dark:text-red-300 uppercase mb-2 flex items-center gap-1.5">
                     <AlertTriangle size={13} /> Identified Painpoints / Issues
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {aiAnalysis.identified_issues.map((issue, index) => (
-                      <span key={index} className="text-[10px] font-medium px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">
+                      <span key={index} className="text-[10px] font-medium px-2 py-0.5 rounded bg-bordeauxVelvet/10 text-bordeauxVelvet dark:text-red-300 border border-bordeauxVelvet/20">
                         {issue}
                       </span>
                     ))}

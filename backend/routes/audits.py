@@ -27,7 +27,21 @@ def audit_to_dict(audit: Audit, include_recording: bool=True) -> dict:
     data = {'id': audit.id, 'audit_id': audit.audit_id, 'client_name': audit.client_name, 'employee_id': audit.employee_id, 'employee_name': audit.employee.full_name if audit.employee else None, 'call_date': audit.call_date.isoformat() if audit.call_date else None, 'call_duration': audit.call_duration, 'status': audit.status.value, 'notes': audit.notes, 'created_at': audit.created_at.isoformat() if audit.created_at else None}
     if include_recording and audit.recording:
         rec = audit.recording
-        data['recording'] = {'id': rec.id, 'duration': rec.duration, 'is_expired': rec.is_expired, 'expires_at': rec.expires_at.isoformat() if rec.expires_at else None, 'uploaded_at': rec.uploaded_at.isoformat() if rec.uploaded_at else None, 'has_file': rec.file_path is not None and (not rec.is_expired)}
+        uploaded_week = None
+        uploaded_year = None
+        if rec.uploaded_at:
+            uploaded_week = rec.uploaded_at.isocalendar()[1]
+            uploaded_year = rec.uploaded_at.year
+        data['recording'] = {
+            'id': rec.id,
+            'duration': rec.duration,
+            'is_expired': rec.is_expired,
+            'expires_at': rec.expires_at.isoformat() if rec.expires_at else None,
+            'uploaded_at': rec.uploaded_at.isoformat() if rec.uploaded_at else None,
+            'uploaded_week': uploaded_week,
+            'uploaded_year': uploaded_year,
+            'has_file': rec.file_path is not None and (not rec.is_expired)
+        }
     else:
         data['recording'] = None
     if audit.ai_analysis:
@@ -67,7 +81,17 @@ async def get_public_audit_list(current_user: User=Depends(get_current_user), db
     for a in audits:
         rec = a.recording
         has_file = rec.file_path is not None and (not rec.is_expired) if rec else False
-        result.append({'id': a.id, 'audit_id': a.audit_id, 'client_name': a.client_name, 'call_date': a.call_date.isoformat() if a.call_date else None, 'status': a.status.value, 'employee_name': a.employee.full_name if a.employee else None, 'is_own_audit': a.employee_id == current_user.id, 'recording': {'has_file': has_file} if rec else None})
+        result.append({
+            'id': a.id,
+            'audit_id': a.audit_id,
+            'client_name': a.client_name,
+            'employee_id': a.employee_id,
+            'call_date': a.call_date.isoformat() if a.call_date else None,
+            'status': a.status.value,
+            'employee_name': a.employee.full_name if a.employee else None,
+            'is_own_audit': a.employee_id == current_user.id,
+            'recording': {'has_file': has_file} if rec else None
+        })
     return {'audits': result}
 
 @router.get('/{audit_id}')
