@@ -22,7 +22,7 @@ export default function AIInsightsPage() {
       ])
       setStats(aiData)
       
-      // Filter audits that actually have AI summaries processed
+      
       const completedAudits = auditData.audits?.filter(
         (a) => a.ai_summary || a.status === 'completed'
       ) || []
@@ -74,7 +74,7 @@ export default function AIInsightsPage() {
     )
   }
 
-  // Calculate sentiment percentages
+  
   const total = stats.total_analyzed
   const posPct = Math.round((stats.sentiment_breakdown?.positive / total) * 100) || 0
   const neuPct = Math.round((stats.sentiment_breakdown?.neutral / total) * 100) || 0
@@ -88,7 +88,7 @@ export default function AIInsightsPage() {
         action={<button type="button" onClick={loadAiInsights} className="btn-secondary"><RefreshCw size={15} /> Refresh</button>}
       />
 
-      {/* Aggregate Stats Cards */}
+      {}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total Analyzed Calls"
@@ -117,9 +117,9 @@ export default function AIInsightsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column: Sentiments & Keywords */}
+        {}
         <div className="space-y-6">
-          {/* Sentiment Breakdown card */}
+          {}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
               <Smile size={16} className="text-brand" /> Sentiment Distribution
@@ -129,9 +129,9 @@ export default function AIInsightsPage() {
               <div>
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="flex items-center gap-1.5 text-slate-500 dark:text-white/60">
-                    <Smile size={14} className="text-emerald-500" /> Positive sentiment
+                    <Smile size={14} className="text-sageGreen" /> Positive sentiment
                   </span>
-                  <span className="font-semibold text-emerald-500">{posPct}%</span>
+                  <span className="font-semibold text-sageGreen dark:text-sageGreen/90">{posPct}%</span>
                 </div>
                 <ProgressBar value={posPct} color="green" />
               </div>
@@ -149,16 +149,16 @@ export default function AIInsightsPage() {
               <div>
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="flex items-center gap-1.5 text-slate-500 dark:text-white/60">
-                    <Frown size={14} className="text-red-400" /> Negative sentiment
+                    <Frown size={14} className="text-bordeauxVelvet dark:text-red-300" /> Negative sentiment
                   </span>
-                  <span className="font-semibold text-red-400">{negPct}%</span>
+                  <span className="font-semibold text-bordeauxVelvet dark:text-red-300">{negPct}%</span>
                 </div>
                 <ProgressBar value={negPct} color="red" />
               </div>
             </div>
           </Card>
 
-          {/* Keywords & Topics Cloud */}
+          {}
           {stats.top_keywords && stats.top_keywords.length > 0 && (
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
@@ -183,15 +183,15 @@ export default function AIInsightsPage() {
           )}
         </div>
 
-        {/* Right Column: Key customer issues and detailed list */}
+        {}
         <div className="lg:col-span-2 space-y-6">
-          {/* Action Required: Critical Alerts */}
+          {}
           {stats.needs_attention && stats.needs_attention.length > 0 && (
-            <Card className="p-6 border-red-500/10 dark:border-red-500/20 bg-red-500/[0.02]">
+            <Card className="p-6 border-bordeauxVelvet/10 dark:border-bordeauxVelvet/20 bg-bordeauxVelvet/[0.02]">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2 mb-1">
-                <AlertTriangle size={16} className="text-red-400" /> Customer Painpoints Requiring Attention
+                <AlertTriangle size={16} className="text-bordeauxVelvet dark:text-red-300" /> Customer Painpoints Requiring Attention
               </h3>
-              <p className="text-xs text-slate-500 dark:text-red-400/60 mb-4">
+              <p className="text-xs text-slate-500 dark:text-red-300/60 mb-4">
                 These calls were flagged with negative sentiment scores or quality alerts. Review suggestions immediately to improve retention.
               </p>
               
@@ -199,7 +199,7 @@ export default function AIInsightsPage() {
                 {stats.needs_attention.map((item, index) => (
                   <div
                     key={index}
-                    className="rounded-xl border border-red-500/10 dark:border-red-500/15 bg-white dark:bg-red-500/5 p-4 flex items-center justify-between gap-4"
+                    className="rounded-xl border border-bordeauxVelvet/10 dark:border-bordeauxVelvet/15 bg-white dark:bg-bordeauxVelvet/5 p-4 flex items-center justify-between gap-4"
                   >
                     <div>
                       <p className="text-sm font-semibold text-slate-800 dark:text-white">{item.audit_id}</p>
@@ -207,7 +207,7 @@ export default function AIInsightsPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge variant="red" className="font-bold">{item.quality_score}% Quality</Badge>
-                      <Link to={`/audits/${item.audit_id}`} className="text-xs font-semibold text-red-500 hover:text-red-600 dark:hover:text-red-300">
+                      <Link to={`/audits/${item.audit_id}`} className="text-xs font-semibold text-bordeauxVelvet dark:text-red-300 hover:underline">
                         View details
                       </Link>
                     </div>
@@ -217,7 +217,7 @@ export default function AIInsightsPage() {
             </Card>
           )}
 
-          {/* Top recurring complaints */}
+          {}
           {stats.top_issues && stats.top_issues.length > 0 && (
             <Card className="p-6 space-y-4">
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
@@ -241,7 +241,7 @@ export default function AIInsightsPage() {
             </Card>
           )}
 
-          {/* List of processed audits */}
+          {}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
               <Sparkles size={16} className="text-brand" /> Processed Call Reports

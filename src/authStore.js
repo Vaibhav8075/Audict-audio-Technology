@@ -1,7 +1,4 @@
-/**
- * Auth Store - Zustand
- * Manages authentication state, tokens, and user session
- */
+
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
@@ -16,7 +13,7 @@ const useAuthStore = create(
       isLoading: false,
       isAuthenticated: false,
 
-      // Login action
+      
       login: async (email, password) => {
         set({ isLoading: true })
         try {
@@ -36,7 +33,7 @@ const useAuthStore = create(
         }
       },
 
-      // Logout action
+      
       logout: () => {
         set({
           user: null,
@@ -46,7 +43,7 @@ const useAuthStore = create(
         })
       },
 
-      // Refresh token
+      
       refreshAccessToken: async () => {
         const { refreshToken } = get()
         if (!refreshToken) {
@@ -67,14 +64,14 @@ const useAuthStore = create(
         }
       },
 
-      // Update user profile in store
+      
       updateUser: (updates) => {
         set(state => ({
           user: { ...state.user, ...updates }
         }))
       },
 
-      // Helpers
+      
       isAdmin: () => get().user?.role === 'admin',
       isEmployee: () => get().user?.role === 'employee',
     }),

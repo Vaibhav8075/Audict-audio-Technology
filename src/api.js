@@ -1,7 +1,4 @@
-/**
- * API Service Layer
- * Centralized Axios instance with JWT interceptors and all API calls
- */
+
 
 import axios from 'axios'
 
@@ -10,17 +7,15 @@ const BASE_URL = import.meta.env.VITE_API_URL ||
     ? 'http://localhost:8000'
     : '/_/backend')
 
-// Create axios instance
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' }
 })
 
-// ─── Request Interceptor: Attach JWT token ──────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-    // Import store inline to avoid circular dependency
+    
     const stored = localStorage.getItem('dcm-auth')
     if (stored) {
       try {
@@ -29,7 +24,7 @@ api.interceptors.request.use(
           config.headers.Authorization = `Bearer ${state.accessToken}`
         }
       } catch {
-        // Ignore malformed persisted auth state.
+        
       }
     }
     return config
@@ -37,7 +32,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// ─── Response Interceptor: Handle 401, token refresh ───────────────────────
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -55,7 +49,7 @@ api.interceptors.response.use(
               refresh_token: state.refreshToken
             })
 
-            // Update stored tokens
+            
             const newState = { ...state, accessToken: res.data.access_token }
             localStorage.setItem('dcm-auth', JSON.stringify({ state: newState }))
 
@@ -64,7 +58,7 @@ api.interceptors.response.use(
           }
         }
       } catch {
-        // Refresh failed - clear session
+        
         localStorage.removeItem('dcm-auth')
         window.location.href = '/login'
       }
@@ -73,7 +67,6 @@ api.interceptors.response.use(
   }
 )
 
-// ─── Auth API ────────────────────────────────────────────────────────────────
 export const authAPI = {
   login: async (email, password) => {
     const res = await api.post('/api/auth/login', { email, password })
@@ -96,7 +89,6 @@ export const authAPI = {
   }
 }
 
-// ─── Audits API ──────────────────────────────────────────────────────────────
 export const auditsAPI = {
   getAll: async (params = {}) => {
     const res = await api.get('/api/audits/', { params })
@@ -128,7 +120,6 @@ export const auditsAPI = {
   }
 }
 
-// ─── Recordings API ──────────────────────────────────────────────────────────
 export const recordingsAPI = {
   upload: async (auditId, file, onProgress) => {
     const formData = new FormData()
@@ -141,7 +132,7 @@ export const recordingsAPI = {
     })
     return res.data
   },
-  // Returns stream URL - never exposes actual file path
+  
   getStreamUrl: (auditId) => `${BASE_URL}/api/recordings/stream/${auditId}`,
   getStreamUrlWithToken: (auditId) => {
     const stored = localStorage.getItem('dcm-auth')
@@ -151,7 +142,7 @@ export const recordingsAPI = {
         const { state } = JSON.parse(stored)
         token = state?.accessToken || ''
       } catch {
-        // Ignore malformed persisted auth state.
+        
       }
     }
     return { url: `${BASE_URL}/api/recordings/stream/${auditId}`, token }
@@ -166,7 +157,6 @@ export const recordingsAPI = {
   }
 }
 
-// ─── Feedback API ─────────────────────────────────────────────────────────────
 export const feedbackAPI = {
   getForms: async () => {
     const res = await api.get('/api/feedback/forms')
@@ -198,7 +188,6 @@ export const feedbackAPI = {
   }
 }
 
-// ─── AI API ──────────────────────────────────────────────────────────────────
 export const aiAPI = {
   triggerAnalysis: async (auditId) => {
     const res = await api.post(`/api/ai/analyze/${auditId}`)
@@ -218,7 +207,6 @@ export const aiAPI = {
   }
 }
 
-// ─── Admin API ────────────────────────────────────────────────────────────────
 export const adminAPI = {
   getUsers: async (params = {}) => {
     const res = await api.get('/api/admin/users', { params })
@@ -244,6 +232,14 @@ export const adminAPI = {
     const res = await api.get('/api/admin/logs', { params })
     return res.data
   },
+  getRetentionSettings: async () => {
+    const res = await api.get('/api/admin/settings/retention')
+    return res.data
+  },
+  updateRetentionSettings: async (days) => {
+    const res = await api.post('/api/admin/settings/retention', { retention_days: days })
+    return res.data
+  },
   exportFeedbackCSV: async () => {
     const res = await api.get('/api/admin/export/feedback-csv', { responseType: 'blob' })
     const url = window.URL.createObjectURL(new Blob([res.data]))
@@ -257,7 +253,6 @@ export const adminAPI = {
   }
 }
 
-// ─── Users API ────────────────────────────────────────────────────────────────
 export const usersAPI = {
   getProfile: async () => {
     const res = await api.get('/api/users/profile')

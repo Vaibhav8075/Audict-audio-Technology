@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { MessageSquare, Plus, RefreshCw, Trash2, Eye, X, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { feedbackAPI } from '../../api.js'
@@ -10,7 +11,7 @@ export default function AdminFeedbackPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  // Form Builder state
+  
   const [formTitle, setFormTitle] = useState('Call Quality Feedback')
   const [formDesc, setFormDesc] = useState('Standard feedback form for call audits')
   const [builderQuestions, setBuilderQuestions] = useState([
@@ -19,7 +20,7 @@ export default function AdminFeedbackPage() {
     { question_text: 'What should be improved?', question_type: 'text' }
   ])
 
-  // Submission Detail modal state
+  
   const [selectedSubmission, setSelectedSubmission] = useState(null)
 
   const loadData = async () => {
@@ -106,7 +107,7 @@ export default function AdminFeedbackPage() {
         action={<button type="button" onClick={loadData} className="btn-secondary"><RefreshCw size={15} /> Refresh</button>}
       />
 
-      {/* Dynamic Form Builder */}
+      {}
       <Card className="p-6 space-y-4">
         <h3 className="font-display font-semibold text-slate-800 dark:text-white flex items-center gap-2">
           <MessageSquare size={18} className="text-brand" /> Custom Form Builder
@@ -163,7 +164,7 @@ export default function AdminFeedbackPage() {
                 <button
                   type="button"
                   onClick={() => handleRemoveQuestion(idx)}
-                  className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg bg-bordeauxVelvet/5 dark:bg-bordeauxVelvet/10 text-bordeauxVelvet dark:text-red-300 hover:bg-bordeauxVelvet/10 dark:hover:bg-bordeauxVelvet/20 transition-all flex items-center justify-center border border-bordeauxVelvet/10"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -182,7 +183,7 @@ export default function AdminFeedbackPage() {
         </form>
       </Card>
 
-      {/* Database logs */}
+      {}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
           <h3 className="font-display font-semibold text-slate-800 dark:text-white mb-4">Active Forms History</h3>
@@ -247,11 +248,11 @@ export default function AdminFeedbackPage() {
         </Card>
       </div>
 
-      {/* Submission Detail Modal */}
-      {selectedSubmission && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      {}
+      {selectedSubmission && createPortal(
+        <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/[0.08] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            {/* Modal header */}
+            {}
             <div className="p-4 border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between">
               <div>
                 <h4 className="font-display font-bold text-slate-800 dark:text-white">
@@ -270,9 +271,9 @@ export default function AdminFeedbackPage() {
               </button>
             </div>
 
-            {/* Modal content */}
+            {}
             <div className="p-6 overflow-y-auto space-y-5">
-              {/* Employee Meta */}
+              {}
               <div className="grid grid-cols-2 gap-4 text-xs p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] rounded-xl">
                 <div>
                   <span className="text-slate-400 dark:text-white/30 uppercase font-semibold text-[9px] block">Submitted By</span>
@@ -284,7 +285,7 @@ export default function AdminFeedbackPage() {
                 </div>
               </div>
 
-              {/* QA List */}
+              {}
               <div className="space-y-4">
                 <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase block tracking-wider">
                   Self-Evaluation Form Answers
@@ -317,8 +318,8 @@ export default function AdminFeedbackPage() {
                       ) : qa.question_type === 'yes_no' ? (
                         <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
                           String(qa.answer_value).toLowerCase() === 'yes'
-                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                            : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                            ? 'bg-sageGreen/10 text-sageGreen dark:text-sageGreen/90 border border-sageGreen/20'
+                            : 'bg-bordeauxVelvet/10 text-bordeauxVelvet dark:text-red-300 border border-bordeauxVelvet/20'
                         }`}>
                           {qa.answer_value}
                         </span>
@@ -334,7 +335,7 @@ export default function AdminFeedbackPage() {
                 )}
               </div>
 
-              {/* Overall Ratings & Comments */}
+              {}
               <div className="pt-4 border-t border-slate-200 dark:border-white/[0.06] space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-wider">
@@ -356,7 +357,7 @@ export default function AdminFeedbackPage() {
               </div>
             </div>
 
-            {/* Modal footer */}
+            {}
             <div className="p-4 bg-slate-50 dark:bg-white/[0.01] border-t border-slate-200 dark:border-white/[0.06] flex justify-end">
               <button
                 type="button"
@@ -367,7 +368,8 @@ export default function AdminFeedbackPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

@@ -136,7 +136,7 @@ export default function FeedbackPage() {
             </div>
 
             {submitted && (
-              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+              <div className="flex items-center gap-2 rounded-xl border border-sageGreen/25 bg-sageGreen/10 px-4 py-3 text-sm text-sageGreen dark:text-sageGreen/90">
                 <CheckCircle2 size={16} /> Feedback has already been submitted for this audit and form.
               </div>
             )}

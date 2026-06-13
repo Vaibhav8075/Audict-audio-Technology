@@ -1,7 +1,4 @@
-/**
- * App.jsx - Root component with routing
- * Protected routes, role guards, and theme initialization
- */
+
 
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
@@ -9,10 +6,8 @@ import { Toaster } from 'react-hot-toast'
 import useAuthStore from './authStore'
 import useThemeStore from './themeStore'
 
-// Layouts
 import DashboardLayout from './DashboardLayout'
 
-// Pages
 import LoginPage from './LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import AuditsPage from './pages/AuditsPage'
@@ -26,7 +21,6 @@ import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage'
 import AdminAuditsPage from './pages/admin/AdminAuditsPage'
 import AdminFeedbackPage from './pages/admin/AdminFeedbackPage'
 
-// Protected Route wrapper
 function ProtectedRoute({ children, adminOnly = false }) {
   const { isAuthenticated, user } = useAuthStore()
 
@@ -70,11 +64,11 @@ export default function App() {
       />
 
       <Routes>
-        {/* Public */}
+        {}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-        {/* Protected - Dashboard Layout */}
+        {}
         <Route
           path="/"
           element={
@@ -90,7 +84,7 @@ export default function App() {
           <Route path="ai-insights" element={<AIInsightsPage />} />
           <Route path="profile" element={<ProfilePage />} />
 
-          {/* Admin only routes */}
+          {}
           <Route
             path="admin"
             element={
@@ -133,7 +127,7 @@ export default function App() {
           />
         </Route>
 
-        {/* Catch-all */}
+        {}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>

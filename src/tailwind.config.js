@@ -1,36 +1,38 @@
-/** @type {import('tailwindcss').Config} */
+
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // Neutral Luxury Palette
+        
         desertRock: "#A48D78",
         softSandstone: "#CBB9A4",
         creamedOat: "#E6DAC8",
         porcelainMist: "#F4F1EA",
         featherWhite: "#FAF9F6",
+        sageGreen: "#8C9A86",
+        slateBlue: "#7F8E9C",
 
-        // Coffee / Earth Palette
+        
         mochaEarth: "#4B3935",
         vanillaCream: "#F0E7D5",
 
-        // Wine / Ivory Palette
+        
         bordeauxVelvet: "#53161D",
         ivoryWhisper: "#FFFBF0",
 
         brand: {
-          50: '#FAF9F6', // featherWhite
-          100: '#FFFBF0', // ivoryWhisper
-          200: '#F0E7D5', // vanillaCream
-          300: '#E6DAC8', // creamedOat
-          400: '#CBB9A4', // softSandstone
-          500: '#A48D78', // desertRock (Primary brand color)
-          600: '#8E7762', // slightly darker desertRock
-          700: '#4B3935', // mochaEarth
-          800: '#342522', // darker mochaEarth
-          900: '#53161D', // bordeauxVelvet
+          50: '#FAF9F6', 
+          100: '#FFFBF0', 
+          200: '#F0E7D5', 
+          300: '#E6DAC8', 
+          400: '#CBB9A4', 
+          500: '#A48D78', 
+          600: '#8E7762', 
+          700: '#4B3935', 
+          800: '#342522', 
+          900: '#53161D', 
         },
         surface: {
           50:  '#fafafa',
@@ -57,11 +59,6 @@ export default {
         'xl': '0.875rem',
         '2xl': '1rem',
         '3xl': '1.25rem',
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'mesh': 'radial-gradient(at 40% 20%, rgba(249,115,22,0.05) 0, transparent 50%), radial-gradient(at 80% 0%, rgba(234,88,12,0.03) 0, transparent 50%)',
-      },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',

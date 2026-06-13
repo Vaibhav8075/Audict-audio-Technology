@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import { Calendar, FileAudio, FileText, RefreshCw, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { adminAPI, auditsAPI, recordingsAPI } from '../../api.js'
 import { Badge, Card, EmptyState, SectionHeader } from '../../index.jsx'
 
 const createAuditId = () => `AUD-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`
-const createLocalDateTime = () => new Date().toISOString().slice(0, 16)
+const createLocalDateTime = () => {
+  const now = new Date()
+  const offsetMs = now.getTimezoneOffset() * 60 * 1000
+  const local = new Date(now.getTime() - offsetMs)
+  return local.toISOString().slice(0, 16)
+}
 
 export default function AdminAuditsPage() {
   const [audits, setAudits] = useState([])
   const [users, setUsers] = useState([])
+  const { searchQuery } = useOutletContext() || { searchQuery: '' }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingId, setUploadingId] = useState(null)
@@ -28,9 +34,21 @@ export default function AdminAuditsPage() {
   )
 
   const filteredAudits = useMemo(() => {
-    if (!selectedEmployeeId) return audits
-    return audits.filter((a) => String(a.employee_id) === String(selectedEmployeeId))
-  }, [audits, selectedEmployeeId])
+    let result = audits
+    if (selectedEmployeeId) {
+      result = result.filter((a) => String(a.employee_id) === String(selectedEmployeeId))
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter((a) => 
+        a.audit_id?.toLowerCase().includes(q) ||
+        a.client_name?.toLowerCase().includes(q) ||
+        a.employee_name?.toLowerCase().includes(q) ||
+        a.status?.toLowerCase().includes(q)
+      )
+    }
+    return result
+  }, [audits, selectedEmployeeId, searchQuery])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -68,7 +86,7 @@ export default function AdminAuditsPage() {
         audit_id: form.audit_id,
         client_name: form.client_name,
         employee_id: Number(form.employee_id),
-        call_date: new Date(form.call_date).toISOString(),
+        call_date: form.call_date,
       })
       toast.success('Audit created')
       setForm((current) => ({
@@ -135,7 +153,7 @@ export default function AdminAuditsPage() {
         </form>
       </Card>
 
-      {/* Employee filter dropdown */}
+      {}
       {employees.length > 0 && (
         <Card className="p-4 flex items-center gap-3">
           <label className="text-xs font-semibold text-slate-500 dark:text-white/40 uppercase">Filter Employee:</label>
@@ -169,7 +187,18 @@ export default function AdminAuditsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-display font-semibold text-slate-800 dark:text-white">{audit.audit_id}</h3>
                     <Badge variant={audit.status}>{audit.status}</Badge>
-                    {audit.recording?.has_file && <Badge variant="green">audio uploaded</Badge>}
+                    {audit.recording && (
+                      audit.recording.is_expired ? (
+                        <Badge variant="gray">audio expired</Badge>
+                      ) : (
+                        <div className="flex gap-1.5 items-center">
+                          <Badge variant="green">audio uploaded</Badge>
+                          {audit.recording.uploaded_week && (
+                            <Badge variant="blue">Week {audit.recording.uploaded_week}</Badge>
+                          )}
+                        </div>
+                      )
+                    )}
                   </div>
                   <p className="text-sm text-slate-600 dark:text-white/60 mt-1">{audit.client_name} - {audit.employee_name}</p>
                   <p className="text-xs text-slate-400 dark:text-white/35 mt-1 flex items-center gap-1">
