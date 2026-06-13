@@ -163,7 +163,7 @@ export default function AdminUsersPage() {
                           {user.is_active && (
                             <button
                               onClick={() => handleDeactivate(user.id)}
-                              className="text-xs font-semibold px-3 py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/15"
+                              className="text-xs font-semibold px-3 py-1 rounded bg-bordeauxVelvet/5 dark:bg-bordeauxVelvet/10 hover:bg-bordeauxVelvet/15 text-bordeauxVelvet dark:text-red-300 border border-bordeauxVelvet/15"
                             >
                               Deactivate
                             </button>

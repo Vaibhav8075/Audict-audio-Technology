@@ -11,6 +11,8 @@ export default {
         creamedOat: "#E6DAC8",
         porcelainMist: "#F4F1EA",
         featherWhite: "#FAF9F6",
+        sageGreen: "#8C9A86",
+        slateBlue: "#7F8E9C",
 
         
         mochaEarth: "#4B3935",

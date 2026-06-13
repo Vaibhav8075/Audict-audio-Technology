@@ -232,6 +232,14 @@ export const adminAPI = {
     const res = await api.get('/api/admin/logs', { params })
     return res.data
   },
+  getRetentionSettings: async () => {
+    const res = await api.get('/api/admin/settings/retention')
+    return res.data
+  },
+  updateRetentionSettings: async (days) => {
+    const res = await api.post('/api/admin/settings/retention', { retention_days: days })
+    return res.data
+  },
   exportFeedbackCSV: async () => {
     const res = await api.get('/api/admin/export/feedback-csv', { responseType: 'blob' })
     const url = window.URL.createObjectURL(new Blob([res.data]))

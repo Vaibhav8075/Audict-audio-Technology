@@ -161,3 +161,9 @@ class AuditAccessLog(Base):
     audit = relationship('Audit', back_populates='access_logs')
     user = relationship('User', back_populates='access_logs')
     __table_args__ = (Index('idx_access_logs_audit_user', 'audit_id', 'user_id'), Index('idx_access_logs_timestamp', 'timestamp'))
+
+class SystemSetting(Base):
+    __tablename__ = 'system_settings'
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String(100), unique=True, nullable=False, index=True)
+    value = Column(String(255), nullable=False)

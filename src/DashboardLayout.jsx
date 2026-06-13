@@ -47,6 +47,7 @@ function NavItem({ item, collapsed }) {
   return (
     <NavLink
       to={item.to}
+      end={item.to === '/admin' || item.to === '/dashboard'}
       className={({ isActive }) =>
         clsx(
           'flex items-center gap-3 px-3 py-2.5 rounded-xl mx-2 transition-all duration-200 group relative',
@@ -108,17 +109,10 @@ export default function DashboardLayout() {
   const loadNotifications = async () => {
     if (!user) return
     try {
-      let auditsData
-      if (user.role === 'employee') {
-        auditsData = await auditsAPI.getPublicList()
-      } else {
-        auditsData = await auditsAPI.getAll({ per_page: 20 })
-      }
+      const auditsData = await auditsAPI.getAll({ per_page: 20 })
       
       const list = []
       auditsData.audits?.slice(0, 8).forEach(a => {
-        
-        if (user.role === 'employee' && !a.is_own_audit) return
 
         if (a.status === 'completed') {
           list.push({
@@ -222,8 +216,8 @@ export default function DashboardLayout() {
           borderColor: 'var(--surface-border)',
         }}
       >
-        {}
-        <div className="flex items-center gap-3 px-4 h-16 border-b border-slate-200 dark:border-white/[0.06] flex-shrink-0">
+        {/* Sidebar Header */}
+        <div className="relative flex items-center gap-3 px-4 h-16 border-b border-slate-200 dark:border-white/[0.06] flex-shrink-0">
           <div className="w-8 h-8 rounded-xl bg-brand-500 flex items-center justify-center flex-shrink-0 shadow-orange-glow">
             <Mic size={16} className="text-white" />
           </div>
@@ -241,13 +235,14 @@ export default function DashboardLayout() {
             )}
           </AnimatePresence>
 
-          {}
+          {/* Collapse toggle button */}
           <button
+            type="button"
             onClick={() => setCollapsed(!collapsed)}
-            className="ml-auto hidden lg:flex w-6 h-6 rounded-lg items-center justify-center text-slate-400 dark:text-white/30 hover:text-slate-700 dark:hover:text-white/70 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-all"
+            className="absolute -right-3 top-5 hidden lg:flex w-6 h-6 rounded-full border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#111118] items-center justify-center text-slate-400 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/80 shadow-md hover:scale-105 transition-all z-50"
           >
             <ChevronRight
-              size={14}
+              size={12}
               className={clsx('transition-transform', collapsed ? '' : 'rotate-180')}
             />
           </button>
@@ -297,7 +292,7 @@ export default function DashboardLayout() {
           <button
             onClick={handleLogout}
             className={clsx(
-              'mt-1 flex items-center gap-2 px-3 py-2 rounded-xl w-full text-slate-500 dark:text-white/40 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-sm',
+              'mt-1 flex items-center gap-2 px-3 py-2 rounded-xl w-full text-slate-500 dark:text-white/40 hover:text-bordeauxVelvet dark:hover:text-red-300 hover:bg-bordeauxVelvet/5 dark:hover:bg-bordeauxVelvet/10 transition-all text-sm',
               collapsed ? 'justify-center' : ''
             )}
           >

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { MessageSquare, Plus, RefreshCw, Trash2, Eye, X, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { feedbackAPI } from '../../api.js'
@@ -163,7 +164,7 @@ export default function AdminFeedbackPage() {
                 <button
                   type="button"
                   onClick={() => handleRemoveQuestion(idx)}
-                  className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all flex items-center justify-center"
+                  className="w-8 h-8 rounded-lg bg-bordeauxVelvet/5 dark:bg-bordeauxVelvet/10 text-bordeauxVelvet dark:text-red-300 hover:bg-bordeauxVelvet/10 dark:hover:bg-bordeauxVelvet/20 transition-all flex items-center justify-center border border-bordeauxVelvet/10"
                 >
                   <Trash2 size={14} />
                 </button>
@@ -248,8 +249,8 @@ export default function AdminFeedbackPage() {
       </div>
 
       {}
-      {selectedSubmission && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      {selectedSubmission && createPortal(
+        <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/[0.08] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
             {}
             <div className="p-4 border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between">
@@ -317,8 +318,8 @@ export default function AdminFeedbackPage() {
                       ) : qa.question_type === 'yes_no' ? (
                         <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
                           String(qa.answer_value).toLowerCase() === 'yes'
-                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-                            : 'bg-red-500/10 text-red-500 border border-red-500/20'
+                            ? 'bg-sageGreen/10 text-sageGreen dark:text-sageGreen/90 border border-sageGreen/20'
+                            : 'bg-bordeauxVelvet/10 text-bordeauxVelvet dark:text-red-300 border border-bordeauxVelvet/20'
                         }`}>
                           {qa.answer_value}
                         </span>
@@ -367,7 +368,8 @@ export default function AdminFeedbackPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

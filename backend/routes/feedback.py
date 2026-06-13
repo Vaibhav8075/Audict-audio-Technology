@@ -35,7 +35,11 @@ class FeedbackSubmit(BaseModel):
 @router.post('/forms', status_code=status.HTTP_201_CREATED)
 async def create_form(data: FormCreate, current_user: User=Depends(get_current_admin), db: Session=Depends(get_db)):
     """Create a new feedback form with questions (admin only)"""
-    form = FeedbackForm(title=data.title, description=data.description, created_by=current_user.id)
+    # Deactivate all previous forms
+    db.query(FeedbackForm).update({FeedbackForm.is_active: False})
+    
+    # Create the new active form
+    form = FeedbackForm(title=data.title, description=data.description, created_by=current_user.id, is_active=True)
     db.add(form)
     db.flush()
     for i, q_data in enumerate(data.questions):

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import os, shutil, uuid, mimetypes
 from database.connection import get_db
-from models import User, Audit, Recording, AuditAccessLog, UserRole, AuditStatus
+from models import User, Audit, Recording, AuditAccessLog, UserRole, AuditStatus, SystemSetting
 from dependencies import get_current_user, get_current_admin
 router = APIRouter()
 STORAGE_PATH = os.getenv('STORAGE_PATH', 'storage/recordings')
@@ -36,7 +36,9 @@ async def upload_recording(audit_id: int, background_tasks: BackgroundTasks, fil
     file_path = os.path.join(audit_dir, secure_filename)
     with open(file_path, 'wb') as f:
         f.write(contents)
-    expires_at = datetime.utcnow() + timedelta(days=RECORDING_EXPIRY_DAYS)
+    setting = db.query(SystemSetting).filter(SystemSetting.key == 'retention_days').first()
+    retention_days = int(setting.value) if setting else RECORDING_EXPIRY_DAYS
+    expires_at = datetime.utcnow() + timedelta(days=retention_days)
     if existing:
         if existing.file_path and os.path.exists(existing.file_path):
             os.remove(existing.file_path)
