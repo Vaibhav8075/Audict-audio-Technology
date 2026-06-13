@@ -1,5 +1,6 @@
 
 
+import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 
@@ -155,12 +156,12 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
       onClick={e => e.target === e.currentTarget && onClose()}
     >
@@ -184,7 +185,8 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
         )}
         <div className="p-6">{children}</div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   )
 }
 
