@@ -15,13 +15,14 @@ An AI-powered quality auditing and self-evaluation platform designed for custome
 * **AI Call Metrics**: Computes call quality scores, Customer Satisfaction (CSAT) gauges, and customer sentiments using Llama models.
 * **Topic & Keyword Extraction**: Extracts recurring themes and keywords dynamically.
 * **Actionable Suggestions**: Generates customized recommendations for call agents to improve their interactions.
+* **ISO Yearly Week Tracker**: Tags calls automatically using the ISO week of the year and year they were uploaded for streamlined temporal grouping.
 
 ###  Custom Feedback & Form Builders
 * **Dynamic Form Builder**: Admins can customize the questionnaire at any time—adding, editing, or removing questions with types like Yes/No, Rating (1-5), and Open Text.
 * **Permanent Feedback Logs**: Submissions are preserved forever in the database. Clicking a log opens a detailed modal mapping out the full questionnaire and employee responses.
 
 ###  Retention & Auto-Cleanups
-* **7-Day Retention Limit**: Call recordings (audio files) are automatically cleaned up from disk 7 days after upload to minimize storage overhead, while all feedback and textual metadata are preserved permanently.
+* **Dynamic Audio Retention Policy**: Admins can customize the retention duration (in days) dynamically from the Admin Settings dashboard. Call recordings (audio files) are automatically cleaned up from disk after the specified number of days, while all feedback and textual metadata are preserved permanently.
 * **Active Background Scheduler**: An integrated APScheduler engine manages daily file expiry runs and weekly disk safety cleanups.
 
 ###  Professional Dashboard Analytics
@@ -96,7 +97,7 @@ The application will be accessible at `http://localhost:5173`.
 
 ---
 
-## 🚀 Production Deployment (Ubuntu Server)
+##  Production Deployment (Ubuntu Server)
 
 For deploying this platform on a local network Ubuntu Server (e.g. an old PC serving as a local server at `192.168.1.2`), follow these instructions:
 
@@ -180,7 +181,7 @@ sudo ufw disable
 
 ---
 
-## 🔒 Security Architecture
+##  Security Architecture
 1. **API Interceptors**: The frontend utilizes custom Axios interceptors to inject authorization headers dynamically.
 2. **Blob Audio Handlers**: HTML5 audio tags are blocked from direct URL requests. Instead, audio data is fetched inside an authorized stream block as a `responseType: 'blob'`, dynamically building local object URLs (`URL.createObjectURL`).
 3. **Data Preservation**: Feedback logs, audit records, and user logs are permanently preserved to retain clean auditing trails.
