@@ -59,8 +59,8 @@ export default function LoginPage() {
           >
             <Mic size={28} className="text-white" />
           </motion.div>
-          <h1 className="font-display font-bold text-3xl text-white">DCM</h1>
-          <p className="text-white/40 text-sm mt-1">Audit Intelligence Platform</p>
+          <h1 className="font-display font-bold text-3xl text-slate-800 dark:text-white">DCM</h1>
+          <p className="text-slate-500 dark:text-white/40 text-sm mt-1">Audit Intelligence Platform</p>
         </div>
 
         {}
@@ -87,7 +87,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@company.com"
-                  className="input-field pl-10"
+                  className="input-field pl-10 !bg-white/5 !border-white/10 !text-white placeholder:!text-white/30"
                   autoComplete="email"
                   required
                 />
@@ -104,7 +104,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="input-field pl-10 pr-10"
+                  className="input-field pl-10 pr-10 !bg-white/5 !border-white/10 !text-white placeholder:!text-white/30"
                   autoComplete="current-password"
                   required
                 />
