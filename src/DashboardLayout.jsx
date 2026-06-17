@@ -37,6 +37,17 @@ const adminNav = [
   { label: 'Profile',      icon: User,            to: '/profile' },
 ]
 
+const hodNav = [
+  { label: 'Dashboard',    icon: LayoutDashboard, to: '/dashboard' },
+  { label: 'Audits',       icon: Mic,             to: '/audits' },
+  { label: 'Feedback',     icon: MessageSquare,   to: '/feedback' },
+  { label: 'AI Insights',  icon: Brain,           to: '/ai-insights' },
+  { divider: true },
+  { label: 'Scorecard',    icon: BarChart3,       to: '/scorecard' },
+  { divider: true },
+  { label: 'Profile',      icon: User,            to: '/profile' },
+]
+
 function NavItem({ item, collapsed }) {
   if (item.divider) {
     return (
@@ -92,7 +103,7 @@ function NavItem({ item, collapsed }) {
 export default function DashboardLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { user, logout, isAdmin } = useAuthStore()
+  const { user, logout, isAdmin, isHOD } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
   const navigate = useNavigate()
   const location = useLocation()
@@ -176,7 +187,11 @@ export default function DashboardLayout() {
     navigate(n.to)
   }
 
-  const navItems = isAdmin() ? adminNav : employeeNav
+  const navItems = useMemo(() => {
+    if (isAdmin()) return adminNav
+    if (isHOD()) return hodNav
+    return employeeNav
+  }, [isAdmin, isHOD])
 
   const handleLogout = async () => {
     logout()

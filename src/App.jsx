@@ -20,8 +20,9 @@ import AdminUsersPage from './pages/admin/AdminUsersPage'
 import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage'
 import AdminAuditsPage from './pages/admin/AdminAuditsPage'
 import AdminFeedbackPage from './pages/admin/AdminFeedbackPage'
+import ScorecardPage from './pages/ScorecardPage'
 
-function ProtectedRoute({ children, adminOnly = false }) {
+function ProtectedRoute({ children, adminOnly = false, allowedRoles }) {
   const { isAuthenticated, user } = useAuthStore()
 
   if (!isAuthenticated) {
@@ -29,6 +30,10 @@ function ProtectedRoute({ children, adminOnly = false }) {
   }
 
   if (adminOnly && user?.role !== 'admin') {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
     return <Navigate to="/dashboard" replace />
   }
 
@@ -83,6 +88,14 @@ export default function App() {
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="ai-insights" element={<AIInsightsPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route
+            path="scorecard"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'hod']}>
+                <ScorecardPage />
+              </ProtectedRoute>
+            }
+          />
 
           {}
           <Route

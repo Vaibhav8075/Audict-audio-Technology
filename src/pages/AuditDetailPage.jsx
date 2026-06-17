@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import WaveSurfer from 'wavesurfer.js'
 import api, { auditsAPI, aiAPI, feedbackAPI } from '../api.js'
 import { Card, SectionHeader, Badge, ProgressBar, Skeleton } from '../index.jsx'
+import useAuthStore from '../authStore'
 
 export default function AuditDetailPage() {
   const { id } = useParams()
@@ -19,6 +20,11 @@ export default function AuditDetailPage() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [duration, setDuration] = useState('00:00')
   const [currentTime, setCurrentTime] = useState('00:00')
+  const { user } = useAuthStore()
+  
+  const [qaReview, setQaReview] = useState(null)
+  const [qaForm, setQaForm] = useState({ rating: 5, comments: '' })
+  const [submittingQA, setSubmittingQA] = useState(false)
   
   const wsContainerRef = useRef(null)
   const wavesurferRef = useRef(null)
@@ -56,6 +62,15 @@ export default function AuditDetailPage() {
           setFeedback(matchedFeedback)
         }
 
+        try {
+          const qaData = await feedbackAPI.getQAReview(id)
+          if (qaData?.review) {
+            setQaReview(qaData.review)
+          }
+        } catch (err) {
+          console.error("Could not fetch QA Review details", err)
+        }
+
         
         if (auditData.recording?.has_file) {
           const response = await api.get(`/api/recordings/stream/${id}`, {
@@ -77,6 +92,28 @@ export default function AuditDetailPage() {
       if (audioSrc) URL.revokeObjectURL(audioSrc)
     }
   }, [id])
+
+  const handleQASubmit = async (e) => {
+    e.preventDefault()
+    setSubmittingQA(true)
+    try {
+      const result = await feedbackAPI.submitQAReview({
+        audit_id: parseInt(id),
+        rating: qaForm.rating,
+        comments: qaForm.comments
+      })
+      toast.success(result.message || 'QA Review submitted successfully')
+      
+      const qaData = await feedbackAPI.getQAReview(id)
+      if (qaData?.review) {
+        setQaReview(qaData.review)
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not submit QA Review')
+    } finally {
+      setSubmittingQA(false)
+    }
+  }
 
   
   useEffect(() => {
@@ -391,6 +428,86 @@ export default function AuditDetailPage() {
               </p>
             </div>
           </div>
+        </Card>
+      )}
+
+      {(qaReview || (user && ['admin', 'hod'].includes(user.role))) && (
+        <Card className="p-6 space-y-4">
+          <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+            <ShieldCheck size={16} className="text-brand" /> Head of Department (HOD) QA Evaluation
+          </h3>
+          
+          {qaReview ? (
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <p className="text-[10px] text-slate-400 dark:text-white/35 font-medium uppercase">QA Rating</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="orange" className="text-sm font-bold">{qaReview.rating} / 5</Badge>
+                  <div className="flex text-amber-500">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i} className="text-lg">
+                        {i < qaReview.rating ? '★' : '☆'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-[10px] text-slate-400 dark:text-white/35 font-medium uppercase">Evaluator Comments</p>
+                <p className="text-sm text-slate-600 dark:text-white/70 mt-1 italic">
+                  "{qaReview.comments || 'No feedback comments provided'}"
+                </p>
+                <p className="text-[9px] text-slate-400 dark:text-white/30 mt-2">
+                  Reviewed by {qaReview.reviewer_name} ({qaReview.reviewer_email}) on {new Date(qaReview.created_at).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleQASubmit} className="space-y-4">
+              <p className="text-xs text-slate-500 dark:text-white/40">
+                Rate this auditor's execution and compliance for this call recording.
+              </p>
+              
+              <div className="grid gap-4 md:grid-cols-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Rating (1 to 5)</label>
+                  <select
+                    className="input-field"
+                    value={qaForm.rating}
+                    onChange={e => setQaForm({ ...qaForm, rating: parseInt(e.target.value) })}
+                  >
+                    <option value="5">5 - Exceptional</option>
+                    <option value="4">4 - Met Expectations</option>
+                    <option value="3">3 - Needs Improvement</option>
+                    <option value="2">2 - Unsatisfactory</option>
+                    <option value="1">1 - Severe Issues</option>
+                  </select>
+                </div>
+                
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">QA Feedback / Remarks</label>
+                  <textarea
+                    rows={2}
+                    value={qaForm.comments}
+                    onChange={e => setQaForm({ ...qaForm, comments: e.target.value })}
+                    placeholder="Enter detailed feedback for the auditor..."
+                    className="input-field py-2"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-white/[0.04]">
+                <button
+                  type="submit"
+                  disabled={submittingQA}
+                  className="btn-primary py-2 px-5"
+                >
+                  {submittingQA ? 'Submitting...' : 'Submit Evaluation'}
+                </button>
+              </div>
+            </form>
+          )}
         </Card>
       )}
     </div>

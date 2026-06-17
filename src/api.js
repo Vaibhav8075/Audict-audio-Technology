@@ -185,6 +185,14 @@ export const feedbackAPI = {
   checkSubmission: async (auditId, formId) => {
     const res = await api.get(`/api/feedback/check/${auditId}/${formId}`)
     return res.data
+  },
+  submitQAReview: async (data) => {
+    const res = await api.post('/api/feedback/qa-review', data)
+    return res.data
+  },
+  getQAReview: async (auditId) => {
+    const res = await api.get(`/api/feedback/qa-review/${auditId}`)
+    return res.data
   }
 }
 
@@ -250,6 +258,10 @@ export const adminAPI = {
     link.click()
     link.remove()
     window.URL.revokeObjectURL(url)
+  },
+  getEmployeeAnalytics: async (params = {}) => {
+    const res = await api.get('/api/admin/analytics/employees', { params })
+    return res.data
   }
 }
 

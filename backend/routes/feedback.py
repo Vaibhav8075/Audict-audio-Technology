@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from typing import Optional, List, Any
 from datetime import datetime
 from database.connection import get_db
-from models import User, Audit, FeedbackForm, FeedbackQuestion, FeedbackAnswer, FeedbackQuestionAnswer, FeedbackQuestionType, UserRole
-from dependencies import get_current_user, get_current_admin
+from models import User, Audit, FeedbackForm, FeedbackQuestion, FeedbackAnswer, FeedbackQuestionAnswer, FeedbackQuestionType, UserRole, QAAuditReview
+from dependencies import get_current_user, get_current_admin, get_current_manager
 router = APIRouter()
 
 class QuestionCreate(BaseModel):
@@ -31,6 +31,11 @@ class FeedbackSubmit(BaseModel):
     overall_rating: Optional[float] = None
     comments: Optional[str] = None
     answers: List[QuestionAnswerSubmit] = []
+
+class QAReviewSubmit(BaseModel):
+    audit_id: int
+    rating: int
+    comments: Optional[str] = None
 
 @router.post('/forms', status_code=status.HTTP_201_CREATED)
 async def create_form(data: FormCreate, current_user: User=Depends(get_current_admin), db: Session=Depends(get_db)):
@@ -122,3 +127,68 @@ async def check_submission(audit_id: int, form_id: int, current_user: User=Depen
     """Check if current user has already submitted feedback for this audit+form"""
     existing = db.query(FeedbackAnswer).filter(FeedbackAnswer.audit_id == audit_id, FeedbackAnswer.form_id == form_id, FeedbackAnswer.submitted_by_id == current_user.id).first()
     return {'has_submitted': existing is not None, 'submission_id': existing.id if existing else None}
+
+@router.post('/qa-review', status_code=status.HTTP_201_CREATED)
+async def submit_qa_review(data: QAReviewSubmit, current_user: User=Depends(get_current_manager), db: Session=Depends(get_db)):
+    """
+    Submit a QA evaluation review for an audit (HOD or Admin only).
+    One review per audit.
+    """
+    if data.rating < 1 or data.rating > 5:
+        raise HTTPException(status_code=400, detail='Rating must be between 1 and 5')
+        
+    audit = db.query(Audit).filter(Audit.id == data.audit_id).first()
+    if not audit:
+        raise HTTPException(status_code=404, detail='Audit not found')
+        
+    # Check if a review already exists
+    existing = db.query(QAAuditReview).filter(QAAuditReview.audit_id == data.audit_id).first()
+    if existing:
+        existing.reviewer_id = current_user.id
+        existing.rating = data.rating
+        existing.comments = data.comments
+        db.commit()
+        db.refresh(existing)
+        return {'message': 'QA review updated successfully', 'review_id': existing.id}
+        
+    review = QAAuditReview(
+        audit_id=data.audit_id,
+        reviewer_id=current_user.id,
+        rating=data.rating,
+        comments=data.comments
+    )
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+    return {'message': 'QA review submitted successfully', 'review_id': review.id}
+
+@router.get('/qa-review/{audit_id}')
+async def get_qa_review(audit_id: int, current_user: User=Depends(get_current_user), db: Session=Depends(get_db)):
+    """
+    Get the QA review for a specific audit.
+    Access is restricted to the assigned employee, HODs, and admins.
+    """
+    audit = db.query(Audit).filter(Audit.id == audit_id).first()
+    if not audit:
+        raise HTTPException(status_code=404, detail='Audit not found')
+        
+    # Check permission: employee can only see their own audits
+    if current_user.role == UserRole.employee and audit.employee_id != current_user.id:
+        raise HTTPException(status_code=403, detail='Access denied')
+        
+    review = db.query(QAAuditReview).options(joinedload(QAAuditReview.reviewer)).filter(QAAuditReview.audit_id == audit_id).first()
+    if not review:
+        return {'review': None}
+        
+    return {
+        'review': {
+            'id': review.id,
+            'audit_id': review.audit_id,
+            'reviewer_name': review.reviewer.full_name,
+            'reviewer_email': review.reviewer.email,
+            'rating': review.rating,
+            'comments': review.comments,
+            'created_at': review.created_at.isoformat() if review.created_at else None,
+            'updated_at': review.updated_at.isoformat() if review.updated_at else None
+        }
+    }

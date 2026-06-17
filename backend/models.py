@@ -7,6 +7,7 @@ import enum
 class UserRole(str, enum.Enum):
     admin = 'admin'
     employee = 'employee'
+    hod = 'hod'
 
 class AuditStatus(str, enum.Enum):
     pending = 'pending'
@@ -59,6 +60,7 @@ class Audit(Base):
     recording = relationship('Recording', back_populates='audit', uselist=False)
     feedback_answers = relationship('FeedbackAnswer', back_populates='audit')
     ai_analysis = relationship('AIAnalysis', back_populates='audit', uselist=False)
+    qa_review = relationship('QAAuditReview', back_populates='audit', uselist=False, cascade='all, delete-orphan')
     access_logs = relationship('AuditAccessLog', back_populates='audit')
     __table_args__ = (Index('idx_audits_employee_date', 'employee_id', 'call_date'), Index('idx_audits_status', 'status'))
 
@@ -161,6 +163,19 @@ class AuditAccessLog(Base):
     audit = relationship('Audit', back_populates='access_logs')
     user = relationship('User', back_populates='access_logs')
     __table_args__ = (Index('idx_access_logs_audit_user', 'audit_id', 'user_id'), Index('idx_access_logs_timestamp', 'timestamp'))
+
+class QAAuditReview(Base):
+    __tablename__ = 'qa_audit_reviews'
+    id = Column(Integer, primary_key=True, index=True)
+    audit_id = Column(Integer, ForeignKey('audits.id'), unique=True, nullable=False, index=True)
+    reviewer_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    rating = Column(Integer, nullable=False)
+    comments = Column(Text, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+    audit = relationship('Audit', back_populates='qa_review')
+    reviewer = relationship('User')
 
 class SystemSetting(Base):
     __tablename__ = 'system_settings'

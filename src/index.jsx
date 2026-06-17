@@ -37,6 +37,7 @@ const badgeVariants = {
   expired:  'badge-gray',
   admin:    'badge-orange',
   employee: 'badge-blue',
+  hod:      'badge-green',
 }
 
 export function Badge({ variant = 'gray', children, className }) {
