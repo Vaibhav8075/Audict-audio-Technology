@@ -290,7 +290,7 @@ export default function AuditDetailPage() {
         ) : (
           <div className="text-center py-6 border border-dashed border-slate-200 dark:border-white/10 rounded-xl text-slate-400 dark:text-white/20">
             <Mic size={24} className="mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Audio recording is unavailable or has expired (7-day rentention limit reached).</p>
+            <p className="text-sm">Audio recording is unavailable or has expired (retention limit reached).</p>
           </div>
         )}
       </Card>
