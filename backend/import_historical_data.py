@@ -165,7 +165,7 @@ def import_data():
                 continue
             agent_user_id = get_or_create_user(agent_name, UserRole.employee)
             auditor_user_id = get_or_create_user(auditor_name, UserRole.admin)
-            audit = Audit(audit_id=audit_id_str, client_name=process, employee_id=agent_user_id, call_date=call_date, call_duration=duration_sec, status=AuditStatus.completed, notes=f'Imported from {sheet_name} SNo {sno}.')
+            audit = Audit(audit_id=audit_id_str, campaign_name=process, employee_id=agent_user_id, call_date=call_date, call_duration=duration_sec, status=AuditStatus.completed, notes=f'Imported from {sheet_name} SNo {sno}.')
             db.add(audit)
             db.flush()
             recording = Recording(audit_id=audit.id, file_name=os.path.basename(file_path_val) if file_path_val else f'call_{phone_val}.wav', file_path=None, file_size=0, duration=duration_sec, is_expired=True, expires_at=datetime.datetime.utcnow(), uploaded_by=auditor_user_id)

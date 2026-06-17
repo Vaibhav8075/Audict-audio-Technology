@@ -104,7 +104,7 @@ async def get_my_submissions(current_user: User=Depends(get_current_user), db: S
     submissions = db.query(FeedbackAnswer).options(joinedload(FeedbackAnswer.audit), joinedload(FeedbackAnswer.form), joinedload(FeedbackAnswer.question_answers).joinedload(FeedbackQuestionAnswer.question)).filter(FeedbackAnswer.submitted_by_id == current_user.id).order_by(desc(FeedbackAnswer.submitted_at)).all()
     result = []
     for s in submissions:
-        result.append({'id': s.id, 'audit': {'id': s.audit.id, 'audit_id': s.audit.audit_id, 'client_name': s.audit.client_name} if s.audit else None, 'form_title': s.form.title if s.form else None, 'overall_rating': s.overall_rating, 'comments': s.comments, 'submitted_at': s.submitted_at.isoformat() if s.submitted_at else None, 'answers': [{'question_id': qa.question_id, 'question_text': qa.question.question_text if qa.question else None, 'question_type': qa.question.question_type.value if qa.question else None, 'answer_value': qa.answer_value} for qa in s.question_answers]})
+        result.append({'id': s.id, 'audit': {'id': s.audit.id, 'audit_id': s.audit.audit_id, 'campaign_name': s.audit.campaign_name} if s.audit else None, 'form_title': s.form.title if s.form else None, 'overall_rating': s.overall_rating, 'comments': s.comments, 'submitted_at': s.submitted_at.isoformat() if s.submitted_at else None, 'answers': [{'question_id': qa.question_id, 'question_text': qa.question.question_text if qa.question else None, 'question_type': qa.question.question_type.value if qa.question else None, 'answer_value': qa.answer_value} for qa in s.question_answers]})
     return {'submissions': result}
 
 @router.get('/all-submissions')
@@ -119,7 +119,7 @@ async def get_all_submissions(page: int=Query(1, ge=1), per_page: int=Query(20),
     submissions = query.order_by(desc(FeedbackAnswer.submitted_at)).offset((page - 1) * per_page).limit(per_page).all()
     result = []
     for s in submissions:
-        result.append({'id': s.id, 'audit': {'id': s.audit.id, 'audit_id': s.audit.audit_id, 'client_name': s.audit.client_name} if s.audit else None, 'form_title': s.form.title if s.form else None, 'submitted_by': {'id': s.submitted_by.id, 'full_name': s.submitted_by.full_name, 'email': s.submitted_by.email} if s.submitted_by else None, 'overall_rating': s.overall_rating, 'comments': s.comments, 'submitted_at': s.submitted_at.isoformat() if s.submitted_at else None, 'answer_count': len(s.question_answers), 'answers': [{'question_id': qa.question_id, 'question_text': qa.question.question_text if qa.question else None, 'question_type': qa.question.question_type.value if qa.question else None, 'answer_value': qa.answer_value} for qa in s.question_answers]})
+        result.append({'id': s.id, 'audit': {'id': s.audit.id, 'audit_id': s.audit.audit_id, 'campaign_name': s.audit.campaign_name} if s.audit else None, 'form_title': s.form.title if s.form else None, 'submitted_by': {'id': s.submitted_by.id, 'full_name': s.submitted_by.full_name, 'email': s.submitted_by.email} if s.submitted_by else None, 'overall_rating': s.overall_rating, 'comments': s.comments, 'submitted_at': s.submitted_at.isoformat() if s.submitted_at else None, 'answer_count': len(s.question_answers), 'answers': [{'question_id': qa.question_id, 'question_text': qa.question.question_text if qa.question else None, 'question_type': qa.question.question_type.value if qa.question else None, 'answer_value': qa.answer_value} for qa in s.question_answers]})
     return {'submissions': result, 'total': total, 'page': page, 'per_page': per_page}
 
 @router.get('/all-qa-reviews')
@@ -139,7 +139,7 @@ async def get_all_qa_reviews(page: int=Query(1, ge=1), per_page: int=Query(20), 
             'audit': {
                 'id': r.audit.id,
                 'audit_id': r.audit.audit_id,
-                'client_name': r.audit.client_name,
+                'campaign_name': r.audit.campaign_name,
                 'employee': {
                     'id': r.audit.employee.id,
                     'full_name': r.audit.employee.full_name,

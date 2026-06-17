@@ -120,9 +120,9 @@ async def export_feedback_csv(current_user: User=Depends(get_current_admin), db:
     submissions = db.query(FeedbackAnswer).options(joinedload(FeedbackAnswer.audit), joinedload(FeedbackAnswer.submitted_by), joinedload(FeedbackAnswer.form)).all()
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['Submission ID', 'Audit ID', 'Client Name', 'Employee', 'Form', 'Overall Rating', 'Comments', 'Submitted At'])
+    writer.writerow(['Submission ID', 'Audit ID', 'Campaign Name', 'Employee', 'Form', 'Overall Rating', 'Comments', 'Submitted At'])
     for s in submissions:
-        writer.writerow([s.id, s.audit.audit_id if s.audit else '', s.audit.client_name if s.audit else '', s.submitted_by.full_name if s.submitted_by else '', s.form.title if s.form else '', s.overall_rating or '', s.comments or '', s.submitted_at.isoformat() if s.submitted_at else ''])
+        writer.writerow([s.id, s.audit.audit_id if s.audit else '', s.audit.campaign_name if s.audit else '', s.submitted_by.full_name if s.submitted_by else '', s.form.title if s.form else '', s.overall_rating or '', s.comments or '', s.submitted_at.isoformat() if s.submitted_at else ''])
     output.seek(0)
     return StreamingResponse(iter([output.getvalue()]), media_type='text/csv', headers={'Content-Disposition': 'attachment; filename=feedback_export.csv'})
 

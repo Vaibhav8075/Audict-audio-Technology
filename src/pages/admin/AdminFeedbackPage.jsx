@@ -256,7 +256,7 @@ export default function AdminFeedbackPage() {
                   >
                     <div className="min-w-0">
                       <p className="font-semibold text-slate-800 dark:text-white text-sm group-hover:text-brand transition-colors">
-                        {submission.audit?.audit_id} - {submission.audit?.client_name}
+                        {submission.audit?.audit_id} - {submission.audit?.campaign_name}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">
                         By: {submission.submitted_by?.full_name} ({submission.submitted_by?.email})
@@ -290,7 +290,7 @@ export default function AdminFeedbackPage() {
                   >
                     <div className="min-w-0">
                       <p className="font-semibold text-slate-800 dark:text-white text-sm group-hover:text-brand transition-colors">
-                        {review.audit?.audit_id} - {review.audit?.client_name}
+                        {review.audit?.audit_id} - {review.audit?.campaign_name}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">
                         Reviewer: {review.reviewer?.full_name} ({review.reviewer?.email})
@@ -329,7 +329,7 @@ export default function AdminFeedbackPage() {
                   Submission Details - {selectedSubmission.audit?.audit_id}
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">
-                  Client: {selectedSubmission.audit?.client_name}
+                  Campaign: {selectedSubmission.audit?.campaign_name}
                 </p>
               </div>
               <button
@@ -452,7 +452,7 @@ export default function AdminFeedbackPage() {
                   QA Review Details - {selectedQAReview.audit?.audit_id}
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">
-                  Client: {selectedQAReview.audit?.client_name}
+                  Campaign: {selectedQAReview.audit?.campaign_name}
                 </p>
               </div>
               <button

@@ -124,7 +124,7 @@ export default function FeedbackPage() {
               <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Audit</label>
                 <select className="input-field" value={selectedAuditId} onChange={(event) => setSelectedAuditId(event.target.value)}>
-                  {audits.map((audit) => <option key={audit.id} value={audit.id}>{audit.audit_id} - {audit.client_name}</option>)}
+                  {audits.map((audit) => <option key={audit.id} value={audit.id}>{audit.audit_id} - {audit.campaign_name}</option>)}
                 </select>
               </div>
               <div>
