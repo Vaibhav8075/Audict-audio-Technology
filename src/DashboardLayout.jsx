@@ -123,13 +123,17 @@ export default function DashboardLayout() {
       const auditsData = await auditsAPI.getAll({ per_page: 20 })
       
       const list = []
+      const isManager = ['admin', 'hod'].includes(user.role)
+      
       auditsData.audits?.slice(0, 8).forEach(a => {
 
         if (a.status === 'completed') {
           list.push({
             id: `ai-${a.id}`,
             title: 'AI Analysis Complete',
-            message: `Call audit ${a.audit_id} has been analyzed by AI.`,
+            message: isManager 
+              ? `Call audit ${a.audit_id} for ${a.employee_name} has been analyzed by AI.`
+              : `Your call audit ${a.audit_id} has been analyzed by AI.`,
             to: `/audits/${a.id}`,
             read: localStorage.getItem(`notif-read-ai-${a.id}`) === 'true',
             date: a.call_date ? new Date(a.call_date) : new Date()
@@ -139,15 +143,20 @@ export default function DashboardLayout() {
         list.push({
           id: `assign-${a.id}`,
           title: 'Audit Assigned',
-          message: `New call audit ${a.audit_id} assigned for ${a.client_name}.`,
+          message: isManager
+            ? `New call audit ${a.audit_id} assigned to ${a.employee_name} for ${a.client_name}.`
+            : `New call audit ${a.audit_id} assigned to you for ${a.client_name}.`,
           to: `/audits/${a.id}`,
           read: localStorage.getItem(`notif-read-assign-${a.id}`) === 'true',
           date: a.call_date ? new Date(a.call_date) : new Date()
         })
       })
 
-      
-      list.sort((x, y) => y.date - x.date)
+      list.sort((x, y) => {
+        const xTime = x.date instanceof Date && !isNaN(x.date) ? x.date.getTime() : 0
+        const yTime = y.date instanceof Date && !isNaN(y.date) ? y.date.getTime() : 0
+        return yTime - xTime
+      })
       setNotifications(list)
     } catch (err) {
       
