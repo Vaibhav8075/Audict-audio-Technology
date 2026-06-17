@@ -122,6 +122,42 @@ async def get_all_submissions(page: int=Query(1, ge=1), per_page: int=Query(20),
         result.append({'id': s.id, 'audit': {'id': s.audit.id, 'audit_id': s.audit.audit_id, 'client_name': s.audit.client_name} if s.audit else None, 'form_title': s.form.title if s.form else None, 'submitted_by': {'id': s.submitted_by.id, 'full_name': s.submitted_by.full_name, 'email': s.submitted_by.email} if s.submitted_by else None, 'overall_rating': s.overall_rating, 'comments': s.comments, 'submitted_at': s.submitted_at.isoformat() if s.submitted_at else None, 'answer_count': len(s.question_answers), 'answers': [{'question_id': qa.question_id, 'question_text': qa.question.question_text if qa.question else None, 'question_type': qa.question.question_type.value if qa.question else None, 'answer_value': qa.answer_value} for qa in s.question_answers]})
     return {'submissions': result, 'total': total, 'page': page, 'per_page': per_page}
 
+@router.get('/all-qa-reviews')
+async def get_all_qa_reviews(page: int=Query(1, ge=1), per_page: int=Query(20), current_user: User=Depends(get_current_admin), db: Session=Depends(get_db)):
+    """Get all QA reviews (admin only)"""
+    query = db.query(QAAuditReview).options(
+        joinedload(QAAuditReview.reviewer),
+        joinedload(QAAuditReview.audit).joinedload(Audit.employee)
+    )
+    total = query.count()
+    reviews = query.order_by(desc(QAAuditReview.created_at)).offset((page - 1) * per_page).limit(per_page).all()
+    result = []
+    for r in reviews:
+        result.append({
+            'id': r.id,
+            'audit_id': r.audit_id,
+            'audit': {
+                'id': r.audit.id,
+                'audit_id': r.audit.audit_id,
+                'client_name': r.audit.client_name,
+                'employee': {
+                    'id': r.audit.employee.id,
+                    'full_name': r.audit.employee.full_name,
+                    'email': r.audit.employee.email
+                } if r.audit.employee else None
+            } if r.audit else None,
+            'reviewer': {
+                'id': r.reviewer.id,
+                'full_name': r.reviewer.full_name,
+                'email': r.reviewer.email
+            } if r.reviewer else None,
+            'rating': r.rating,
+            'comments': r.comments,
+            'created_at': r.created_at.isoformat() if r.created_at else None,
+            'updated_at': r.updated_at.isoformat() if r.updated_at else None
+        })
+    return {'reviews': result, 'total': total, 'page': page, 'per_page': per_page}
+
 @router.get('/check/{audit_id}/{form_id}')
 async def check_submission(audit_id: int, form_id: int, current_user: User=Depends(get_current_user), db: Session=Depends(get_db)):
     """Check if current user has already submitted feedback for this audit+form"""

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { User, ShieldCheck, Mail, Building, Clock, Lock, Save, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { usersAPI } from '../api.js'
-import { Card, SectionHeader, Badge } from '../index.jsx'
+import { Card, SectionHeader, Badge, formatDate } from '../index.jsx'
 import useAuthStore from '../authStore.js'
 
 export default function ProfilePage() {
@@ -155,11 +155,11 @@ export default function ProfilePage() {
             <Card className="p-5 text-xs space-y-3 text-slate-500 dark:text-white/30">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5"><Clock size={13} /> Created</span>
-                <span className="font-mono">{profile.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}</span>
+                <span className="font-mono">{profile.created_at ? formatDate(profile.created_at, true) : 'N/A'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5"><Clock size={13} /> Last Login</span>
-                <span className="font-mono">{profile.last_login ? new Date(profile.last_login).toLocaleDateString() : 'First login'}</span>
+                <span className="font-mono">{profile.last_login ? formatDate(profile.last_login, true) : 'First login'}</span>
               </div>
             </Card>
           </div>

@@ -193,6 +193,10 @@ export const feedbackAPI = {
   getQAReview: async (auditId) => {
     const res = await api.get(`/api/feedback/qa-review/${auditId}`)
     return res.data
+  },
+  getAllQAReviews: async (params = {}) => {
+    const res = await api.get('/api/feedback/all-qa-reviews', { params })
+    return res.data
   }
 }
 

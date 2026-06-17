@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { adminAPI } from '../../api.js'
-import { Card, SectionHeader, StatCard, Skeleton } from '../../index.jsx'
+import { Card, SectionHeader, StatCard, Skeleton, formatDateTime } from '../../index.jsx'
 
 export default function AdminPage() {
   const [logs, setLogs] = useState([])
@@ -227,7 +227,7 @@ export default function AdminPage() {
                           </td>
                           <td className="px-4 py-3 font-mono text-[10px]">{log.ip_address || 'local'}</td>
                           <td className="px-4 py-3 text-slate-400 font-mono text-[10px]">
-                            {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}
+                            {log.timestamp ? formatDateTime(log.timestamp, true) : 'N/A'}
                           </td>
                         </tr>
                       ))

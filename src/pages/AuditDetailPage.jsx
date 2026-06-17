@@ -7,7 +7,7 @@ import {
 import toast from 'react-hot-toast'
 import WaveSurfer from 'wavesurfer.js'
 import api, { auditsAPI, aiAPI, feedbackAPI } from '../api.js'
-import { Card, SectionHeader, Badge, ProgressBar, Skeleton } from '../index.jsx'
+import { Card, SectionHeader, Badge, ProgressBar, Skeleton, formatDate } from '../index.jsx'
 import useAuthStore from '../authStore'
 
 export default function AuditDetailPage() {
@@ -458,7 +458,7 @@ export default function AuditDetailPage() {
                   "{qaReview.comments || 'No feedback comments provided'}"
                 </p>
                 <p className="text-[9px] text-slate-400 dark:text-white/30 mt-2">
-                  Reviewed by {qaReview.reviewer_name} ({qaReview.reviewer_email}) on {new Date(qaReview.created_at).toLocaleDateString()}
+                  Reviewed by {qaReview.reviewer_name} ({qaReview.reviewer_email}) on {formatDate(qaReview.created_at, true)}
                 </p>
               </div>
             </div>
