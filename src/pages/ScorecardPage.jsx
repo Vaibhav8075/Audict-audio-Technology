@@ -53,7 +53,8 @@ export default function ScorecardPage() {
       'Average AI Quality Score (%)',
       'Average CSAT Score (%)',
       'Average Customer Feedback Rating (1-5)',
-      'Average HOD QA Rating (1-5)'
+      'Average HOD QA Rating (1-5)',
+      'HOD Evaluators'
     ]
 
     const csvRows = [
@@ -67,7 +68,8 @@ export default function ScorecardPage() {
         e.avg_quality_score,
         e.avg_csat_score,
         e.avg_feedback_rating,
-        e.avg_qa_rating
+        e.avg_qa_rating,
+        e.qa_evaluators && e.qa_evaluators.length > 0 ? `"${e.qa_evaluators.join('; ')}"` : '"N/A"'
       ].join(','))
     ]
 
