@@ -208,11 +208,16 @@ async def get_employee_analytics(
                 avg_feedback_rating = sum(valid_ratings) / len(valid_ratings)
                 
         avg_qa_rating = 0.0
+        qa_evaluators = []
         if audit_ids:
-            qa_reviews = db.query(QAAuditReview).filter(QAAuditReview.audit_id.in_(audit_ids)).all()
+            qa_reviews = db.query(QAAuditReview).options(joinedload(QAAuditReview.reviewer)).filter(QAAuditReview.audit_id.in_(audit_ids)).all()
             valid_qa_ratings = [q.rating for q in qa_reviews if q.rating is not None]
             if valid_qa_ratings:
                 avg_qa_rating = sum(valid_qa_ratings) / len(valid_qa_ratings)
+            
+            # Extract unique HOD reviewer names
+            evaluators_set = set(q.reviewer.full_name for q in qa_reviews if q.reviewer and q.reviewer.full_name)
+            qa_evaluators = sorted(list(evaluators_set))
                 
         results.append({
             'employee_id': emp.id,
@@ -224,7 +229,8 @@ async def get_employee_analytics(
             'avg_quality_score': round(avg_quality, 1),
             'avg_csat_score': round(avg_csat, 1),
             'avg_feedback_rating': round(avg_feedback_rating, 2),
-            'avg_qa_rating': round(avg_qa_rating, 2)
+            'avg_qa_rating': round(avg_qa_rating, 2),
+            'qa_evaluators': qa_evaluators
         })
         
     return results
