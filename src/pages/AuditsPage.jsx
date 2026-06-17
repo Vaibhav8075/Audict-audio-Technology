@@ -171,7 +171,7 @@ export default function AuditsPage() {
                 {isExpanded && (
                   <div className="pl-6 border-l border-slate-200 dark:border-white/[0.06] space-y-3 ml-5">
                     {group.audits.map((audit) => {
-                      const canReview = user?.role === 'admin' || audit.is_own_audit
+                      const canReview = user?.role === 'admin' || user?.role === 'hod' || audit.is_own_audit
 
                       return (
                         <Card key={audit.id} className="p-5">
@@ -209,11 +209,9 @@ export default function AuditsPage() {
                                   <Lock size={11} /> Locked (Private)
                                 </span>
                               ) : (
-                                audit.recording?.has_file && !audit.recording?.is_expired && (
-                                  <Link to={`/audits/${audit.id}`} className="btn-primary text-[10px] py-1.5 px-2.5">
-                                    Review call
-                                  </Link>
-                                )
+                                <Link to={`/audits/${audit.id}`} className="btn-primary text-[10px] py-1.5 px-2.5">
+                                  Review call
+                                </Link>
                               )}
                             </div>
                           </div>
