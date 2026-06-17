@@ -35,7 +35,7 @@ An AI-powered quality auditing and self-evaluation platform designed for custome
 
 ### Backend Layer
 * **Core**: FastAPI (Python 3)
-* **ORM & Database**: SQLAlchemy & SQLite
+* **ORM & Database**: SQLAlchemy (SQLite for local development, PostgreSQL 18+ for production deployment)
 * **Task Scheduling**: APScheduler (Daily cleanup workers)
 * **AI Integrations**: Groq Whisper STT (`whisper-large-v3`) & Llama-3.3 (`llama-3.3-70b-versatile`)
 
@@ -44,6 +44,22 @@ An AI-powered quality auditing and self-evaluation platform designed for custome
 * **Styling**: Vanilla CSS & TailwindCSS (configured with Neutral Luxury and Coffee theme variables)
 * **Media Rendering**: WaveSurfer.js (secure waveform audio rendering)
 * **Visualizations**: Recharts (with custom tooltips)
+
+---
+
+##  Storage Architecture (Where Data is Stored)
+
+The system uses a modern, high-performance split storage architecture:
+
+1. **Database (User Accounts, Audits, Feedback, QA Evaluations, Logs)**:
+   * **Local Development**: Stored in a local file at `backend/dcm_audit.db` (SQLite).
+   * **Production Deployment**: Stored in a secure **PostgreSQL** database named `dcm_db` (located on the server's OS filesystem at `/var/lib/postgresql/18/main/`).
+2. **Call Recording Audios (Large Binary Files)**:
+   * Saved directly onto the server's filesystem under the folder `backend/storage/recordings/`.
+   * Only the lightweight file path references (e.g. `storage/recordings/xxxx.mp3`) are stored in the database. This keeps the database lightweight, fast, and easy to backup.
+3. **App Code & Configuration**:
+   * Stored under `/home/root1/Audict-audio-Technology/`.
+   * Credentials and database URLs are configured via `/home/root1/Audict-audio-Technology/backend/.env`.
 
 ---
 
@@ -75,6 +91,7 @@ GROQ_API_KEY=your_groq_api_key_here
 API_KEY=your_jwt_signing_secret_here
 RECORDING_EXPIRY_DAYS=7
 STORAGE_PATH=storage/recordings
+DATABASE_URL=sqlite:///./dcm_audit.db # Use SQLite locally, or PostgreSQL in production
 ```
 
 Run the backend server:
@@ -97,15 +114,53 @@ The application will be accessible at `http://localhost:5173`.
 
 ---
 
-##  Production Deployment (Ubuntu Server)
+##  Production Deployment (Ubuntu Server with PostgreSQL)
 
-For deploying this platform on a local network Ubuntu Server (e.g. an old PC serving as a local server at `192.168.1.2`), follow these instructions:
+For deploying this platform on a local network Ubuntu Server at `192.168.1.2`, follow these instructions:
 
-### 1. Backend Service Setup (Systemd)
-To ensure the FastAPI backend runs continuously in the background and restarts on reboot, register it as a Systemd service:
-
-Create `/etc/systemd/system/dcm-backend.service`:
+### 1. Install and Configure PostgreSQL
+Install PostgreSQL 18:
 ```bash
+sudo apt update
+sudo apt install postgresql postgresql-contrib -y
+```
+
+Log in to the PostgreSQL prompt:
+```bash
+sudo -u postgres psql
+```
+
+Create the database, user, and configure ownership/permissions:
+```sql
+CREATE DATABASE dcm_db;
+CREATE USER dcm_user WITH PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE dcm_db TO dcm_user;
+\c dcm_db
+GRANT ALL ON SCHEMA public TO dcm_user;
+ALTER DATABASE dcm_db OWNER TO dcm_user;
+\q
+```
+
+Update your `/home/root1/Audict-audio-Technology/backend/.env` file with the connection string (if your password has special characters like `@`, URL-encode them as `%40`):
+```env
+DATABASE_URL=postgresql://dcm_user:your_secure_password@localhost:5432/dcm_db
+```
+
+### 2. SQLite to PostgreSQL Database Migration
+If you already have existing audits and user accounts inside SQLite, run the built-in migration utility scripts:
+
+1. **Migrate Records**: Run the copier to import all tables into PostgreSQL:
+   ```bash
+   backend/venv/bin/python backend/migrate_sqlite_to_postgres.py
+   ```
+2. **Sync Counters**: Run the sequence reset script to avoid key conflicts on new database entries:
+   ```bash
+   backend/venv/bin/python backend/sync_postgres_sequences.py
+   ```
+
+### 3. Backend Service Setup (Systemd)
+Register FastAPI as a Systemd service. Create `/etc/systemd/system/dcm-backend.service`:
+```ini
 [Unit]
 Description=FastAPI Backend for DCM Audit System
 After=network.target
@@ -127,7 +182,7 @@ sudo systemctl enable dcm-backend
 sudo systemctl start dcm-backend
 ```
 
-### 2. Frontend Hosting Setup (Nginx)
+### 4. Frontend Hosting Setup (Nginx)
 Install Nginx on the server:
 ```bash
 sudo apt update
@@ -170,13 +225,6 @@ sudo ln -sf /etc/nginx/sites-available/dcm /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl restart nginx
-```
-
-Ensure the firewall is updated or disabled:
-```bash
-sudo ufw allow 'Nginx Full'
-# or disable entirely
-sudo ufw disable
 ```
 
 ---
