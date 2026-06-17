@@ -23,7 +23,7 @@ export default function AdminAuditsPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
   const [form, setForm] = useState(() => ({
     audit_id: createAuditId(),
-    client_name: '',
+    campaign_name: '',
     employee_id: '',
     call_date: createLocalDateTime(),
   }))
@@ -42,7 +42,7 @@ export default function AdminAuditsPage() {
       const q = searchQuery.toLowerCase()
       result = result.filter((a) => 
         a.audit_id?.toLowerCase().includes(q) ||
-        a.client_name?.toLowerCase().includes(q) ||
+        a.campaign_name?.toLowerCase().includes(q) ||
         a.employee_name?.toLowerCase().includes(q) ||
         a.status?.toLowerCase().includes(q)
       )
@@ -76,15 +76,15 @@ export default function AdminAuditsPage() {
 
   const createAudit = async (event) => {
     event.preventDefault()
-    if (!form.client_name || !form.employee_id || !form.audit_id) {
-      toast.error('Add audit ID, client, and employee')
+    if (!form.campaign_name || !form.employee_id || !form.audit_id) {
+      toast.error('Add audit ID, campaign, and employee')
       return
     }
     setSaving(true)
     try {
       await auditsAPI.create({
         audit_id: form.audit_id,
-        client_name: form.client_name,
+        campaign_name: form.campaign_name,
         employee_id: Number(form.employee_id),
         call_date: form.call_date,
       })
@@ -92,7 +92,7 @@ export default function AdminAuditsPage() {
       setForm((current) => ({
         ...current,
         audit_id: createAuditId(),
-        client_name: '',
+        campaign_name: '',
       }))
       await loadData()
     } catch (error) {
@@ -131,8 +131,8 @@ export default function AdminAuditsPage() {
             <input className="input-field" value={form.audit_id} onChange={(event) => setForm({ ...form, audit_id: event.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Client name</label>
-            <input className="input-field" value={form.client_name} onChange={(event) => setForm({ ...form, client_name: event.target.value })} />
+            <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Campaign name</label>
+            <input className="input-field" value={form.campaign_name} onChange={(event) => setForm({ ...form, campaign_name: event.target.value })} />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 dark:text-white/50 mb-1.5">Employee</label>
@@ -200,7 +200,7 @@ export default function AdminAuditsPage() {
                       )
                     )}
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-white/60 mt-1">{audit.client_name} - {audit.employee_name}</p>
+                  <p className="text-sm text-slate-600 dark:text-white/60 mt-1">{audit.campaign_name} - {audit.employee_name}</p>
                   <p className="text-xs text-slate-400 dark:text-white/35 mt-1 flex items-center gap-1">
                     <Calendar size={13} /> {audit.call_date ? new Date(audit.call_date).toLocaleString() : 'No date'}
                   </p>

@@ -48,7 +48,7 @@ class Audit(Base):
     __tablename__ = 'audits'
     id = Column(Integer, primary_key=True, index=True)
     audit_id = Column(String(50), unique=True, nullable=False, index=True)
-    client_name = Column(String(255), nullable=False)
+    campaign_name = Column(String(255), nullable=False)
     employee_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     call_date = Column(DateTime, nullable=False)
     call_duration = Column(Integer, nullable=True)

@@ -252,7 +252,7 @@ export default function AIInsightsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="font-semibold text-slate-800 dark:text-white text-sm">{item.audit_id}</p>
-                      <p className="text-xs text-slate-400 dark:text-white/40 mt-1">{item.client_name} - {item.employee_name}</p>
+                      <p className="text-xs text-slate-400 dark:text-white/40 mt-1">{item.campaign_name} - {item.employee_name}</p>
                       {item.ai_summary?.call_summary && (
                         <p className="text-xs text-slate-500 dark:text-white/60 mt-2 line-clamp-2 leading-relaxed">
                           {item.ai_summary.call_summary}

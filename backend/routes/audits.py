@@ -11,20 +11,20 @@ router = APIRouter()
 
 class AuditCreate(BaseModel):
     audit_id: str
-    client_name: str
+    campaign_name: str
     employee_id: int
     call_date: datetime
     call_duration: Optional[int] = None
     notes: Optional[str] = None
 
 class AuditUpdate(BaseModel):
-    client_name: Optional[str] = None
+    campaign_name: Optional[str] = None
     status: Optional[AuditStatus] = None
     notes: Optional[str] = None
     call_duration: Optional[int] = None
 
 def audit_to_dict(audit: Audit, include_recording: bool=True) -> dict:
-    data = {'id': audit.id, 'audit_id': audit.audit_id, 'client_name': audit.client_name, 'employee_id': audit.employee_id, 'employee_name': audit.employee.full_name if audit.employee else None, 'call_date': audit.call_date.isoformat() if audit.call_date else None, 'call_duration': audit.call_duration, 'status': audit.status.value, 'notes': audit.notes, 'created_at': audit.created_at.isoformat() if audit.created_at else None}
+    data = {'id': audit.id, 'audit_id': audit.audit_id, 'campaign_name': audit.campaign_name, 'employee_id': audit.employee_id, 'employee_name': audit.employee.full_name if audit.employee else None, 'call_date': audit.call_date.isoformat() if audit.call_date else None, 'call_duration': audit.call_duration, 'status': audit.status.value, 'notes': audit.notes, 'created_at': audit.created_at.isoformat() if audit.created_at else None}
     if include_recording and audit.recording:
         rec = audit.recording
         uploaded_week = None
@@ -80,7 +80,7 @@ async def get_audits(page: int=Query(1, ge=1), per_page: int=Query(20, ge=1, le=
     if current_user.role == UserRole.employee:
         query = query.filter(Audit.employee_id == current_user.id)
     if search:
-        query = query.filter(or_(Audit.client_name.ilike(f'%{search}%'), Audit.audit_id.ilike(f'%{search}%')))
+        query = query.filter(or_(Audit.campaign_name.ilike(f'%{search}%'), Audit.audit_id.ilike(f'%{search}%')))
     if status:
         query = query.filter(Audit.status == status)
     total = query.count()
@@ -90,7 +90,7 @@ async def get_audits(page: int=Query(1, ge=1), per_page: int=Query(20, ge=1, le=
 @router.get('/public-list')
 async def get_public_audit_list(current_user: User=Depends(get_current_user), db: Session=Depends(get_db)):
     """
-    Returns ALL audit names/clients (for listing purposes only).
+    Returns ALL audit names/campaigns (for listing purposes only).
     Employees can see names but CANNOT access other people's recordings.
     """
     audits = db.query(Audit).options(joinedload(Audit.employee), joinedload(Audit.recording)).order_by(desc(Audit.call_date)).limit(100).all()
@@ -101,7 +101,7 @@ async def get_public_audit_list(current_user: User=Depends(get_current_user), db
         result.append({
             'id': a.id,
             'audit_id': a.audit_id,
-            'client_name': a.client_name,
+            'campaign_name': a.campaign_name,
             'employee_id': a.employee_id,
             'call_date': a.call_date.isoformat() if a.call_date else None,
             'status': a.status.value,

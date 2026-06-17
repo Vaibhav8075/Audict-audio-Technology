@@ -197,7 +197,7 @@ export default function AuditDetailPage() {
         </Link>
         <SectionHeader
           title={`${audit.audit_id}`}
-          subtitle={`Audit detail for client ${audit.client_name}`}
+          subtitle={`Audit detail for campaign ${audit.campaign_name}`}
         />
       </div>
 
@@ -208,8 +208,8 @@ export default function AuditDetailPage() {
             <Mic size={18} />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 dark:text-white/35 font-medium uppercase">Client Name</p>
-            <p className="font-semibold text-slate-800 dark:text-white text-sm">{audit.client_name}</p>
+            <p className="text-[10px] text-slate-400 dark:text-white/35 font-medium uppercase">Campaign Name</p>
+            <p className="font-semibold text-slate-800 dark:text-white text-sm">{audit.campaign_name}</p>
           </div>
         </Card>
         

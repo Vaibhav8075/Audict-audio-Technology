@@ -144,8 +144,8 @@ export default function DashboardLayout() {
           id: `assign-${a.id}`,
           title: 'Audit Assigned',
           message: isManager
-            ? `New call audit ${a.audit_id} assigned to ${a.employee_name} for ${a.client_name}.`
-            : `New call audit ${a.audit_id} assigned to you for ${a.client_name}.`,
+            ? `New call audit ${a.audit_id} assigned to ${a.employee_name} for ${a.campaign_name}.`
+            : `New call audit ${a.audit_id} assigned to you for ${a.campaign_name}.`,
           to: `/audits/${a.id}`,
           read: localStorage.getItem(`notif-read-assign-${a.id}`) === 'true',
           date: a.call_date ? new Date(a.call_date) : new Date()
@@ -351,7 +351,7 @@ export default function DashboardLayout() {
             <Search size={14} className="text-slate-400 dark:text-white/30" />
             <input
               type="text"
-              placeholder="Search audits, clients..."
+              placeholder="Search audits, campaigns..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-transparent border-0 p-0 text-sm text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-white/25 focus:ring-0 focus:outline-none"

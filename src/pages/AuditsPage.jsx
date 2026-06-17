@@ -78,7 +78,7 @@ export default function AuditsPage() {
       const q = searchQuery.toLowerCase()
       result = result.filter((a) => 
         a.audit_id?.toLowerCase().includes(q) ||
-        a.client_name?.toLowerCase().includes(q) ||
+        a.campaign_name?.toLowerCase().includes(q) ||
         a.employee_name?.toLowerCase().includes(q) ||
         a.status?.toLowerCase().includes(q)
       )
@@ -195,7 +195,7 @@ export default function AuditsPage() {
                                   <Badge variant="gray">no audio</Badge>
                                 )}
                               </div>
-                              <p className="text-xs text-slate-600 dark:text-white/60 mt-1">Client: {audit.client_name}</p>
+                              <p className="text-xs text-slate-600 dark:text-white/60 mt-1">Campaign: {audit.campaign_name}</p>
                               <p className="text-[10px] text-slate-400 dark:text-white/35 mt-1 flex items-center gap-1">
                                 <Calendar size={12} /> {audit.call_date ? new Date(audit.call_date).toLocaleString() : 'No date'}
                               </p>
