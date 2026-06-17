@@ -74,6 +74,7 @@ const useAuthStore = create(
       
       isAdmin: () => get().user?.role === 'admin',
       isEmployee: () => get().user?.role === 'employee',
+      isHOD: () => get().user?.role === 'hod',
     }),
     {
       name: 'dcm-auth',

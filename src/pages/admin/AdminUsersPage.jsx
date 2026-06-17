@@ -149,7 +149,7 @@ export default function AdminUsersPage() {
                         <td className="px-4 py-3 font-mono">{user.email}</td>
                         <td className="px-4 py-3 capitalize">{user.department || 'N/A'}</td>
                         <td className="px-4 py-3">
-                          <Badge variant={user.role === 'admin' ? 'admin' : 'employee'}>
+                          <Badge variant={user.role}>
                             {user.role}
                           </Badge>
                         </td>
@@ -236,6 +236,7 @@ export default function AdminUsersPage() {
                 onChange={e => setForm({ ...form, role: e.target.value })}
               >
                 <option value="employee">Employee / Agent</option>
+                <option value="hod">Head of Department (HOD)</option>
                 <option value="admin">Administrator</option>
               </select>
             </div>

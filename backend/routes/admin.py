@@ -7,8 +7,8 @@ from typing import Optional
 from datetime import datetime, timedelta
 import csv, io
 from database.connection import get_db
-from models import User, Audit, Recording, FeedbackAnswer, AIAnalysis, AuditAccessLog, UserRole, AuditStatus, SentimentLabel, SystemSetting
-from dependencies import get_current_admin
+from models import User, Audit, Recording, FeedbackAnswer, AIAnalysis, AuditAccessLog, UserRole, AuditStatus, SentimentLabel, SystemSetting, QAAuditReview
+from dependencies import get_current_admin, get_current_manager
 from auth_utils import get_password_hash
 router = APIRouter()
 
@@ -162,3 +162,69 @@ async def update_retention_setting(data: RetentionSettings, current_user: User=D
                         pass
     db.commit()
     return {'message': 'Retention settings updated successfully', 'retention_days': data.retention_days}
+
+@router.get('/analytics/employees')
+async def get_employee_analytics(
+    current_user: User=Depends(get_current_manager), 
+    db: Session=Depends(get_db),
+    department: Optional[str] = None
+):
+    """
+    Get aggregated analytics for all employees (tally/leaderboard).
+    Accessible by admins and HODs.
+    """
+    query = db.query(User).filter(User.role == UserRole.employee)
+    if department:
+        query = query.filter(User.department == department)
+        
+    employees = query.all()
+    
+    results = []
+    for emp in employees:
+        audits = db.query(Audit).filter(Audit.employee_id == emp.id).all()
+        audit_ids = [a.id for a in audits]
+        
+        total_audits = len(audits)
+        completed_audits = sum(1 for a in audits if a.status == AuditStatus.completed)
+        
+        avg_quality = 0.0
+        avg_csat = 0.0
+        
+        if audit_ids:
+            ai_analyses = db.query(AIAnalysis).filter(AIAnalysis.audit_id.in_(audit_ids)).all()
+            if ai_analyses:
+                valid_quality = [ai.call_quality_score for ai in ai_analyses if ai.call_quality_score is not None]
+                valid_csat = [ai.customer_satisfaction_score for ai in ai_analyses if ai.customer_satisfaction_score is not None]
+                if valid_quality:
+                    avg_quality = sum(valid_quality) / len(valid_quality)
+                if valid_csat:
+                    avg_csat = sum(valid_csat) / len(valid_csat)
+        
+        avg_feedback_rating = 0.0
+        if audit_ids:
+            feedbacks = db.query(FeedbackAnswer).filter(FeedbackAnswer.audit_id.in_(audit_ids)).all()
+            valid_ratings = [f.overall_rating for f in feedbacks if f.overall_rating is not None]
+            if valid_ratings:
+                avg_feedback_rating = sum(valid_ratings) / len(valid_ratings)
+                
+        avg_qa_rating = 0.0
+        if audit_ids:
+            qa_reviews = db.query(QAAuditReview).filter(QAAuditReview.audit_id.in_(audit_ids)).all()
+            valid_qa_ratings = [q.rating for q in qa_reviews if q.rating is not None]
+            if valid_qa_ratings:
+                avg_qa_rating = sum(valid_qa_ratings) / len(valid_qa_ratings)
+                
+        results.append({
+            'employee_id': emp.id,
+            'full_name': emp.full_name,
+            'email': emp.email,
+            'department': emp.department,
+            'total_audits': total_audits,
+            'completed_audits': completed_audits,
+            'avg_quality_score': round(avg_quality, 1),
+            'avg_csat_score': round(avg_csat, 1),
+            'avg_feedback_rating': round(avg_feedback_rating, 2),
+            'avg_qa_rating': round(avg_qa_rating, 2)
+        })
+        
+    return results

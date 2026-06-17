@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from database.connection import get_db
-from models import User, Audit, Recording, AIAnalysis, AuditAccessLog, AuditStatus, UserRole
+from models import User, Audit, Recording, AIAnalysis, AuditAccessLog, AuditStatus, UserRole, QAAuditReview
 from dependencies import get_current_user, get_current_admin
 router = APIRouter()
 
@@ -50,6 +50,17 @@ def audit_to_dict(audit: Audit, include_recording: bool=True) -> dict:
     else:
         data['ai_summary'] = None
     data['feedback_count'] = len(audit.feedback_answers) if audit.feedback_answers else 0
+    if audit.qa_review:
+        data['qa_review'] = {
+            'id': audit.qa_review.id,
+            'reviewer_name': audit.qa_review.reviewer.full_name,
+            'reviewer_email': audit.qa_review.reviewer.email,
+            'rating': audit.qa_review.rating,
+            'comments': audit.qa_review.comments,
+            'created_at': audit.qa_review.created_at.isoformat() if audit.qa_review.created_at else None
+        }
+    else:
+        data['qa_review'] = None
     return data
 
 @router.get('/')
@@ -59,7 +70,13 @@ async def get_audits(page: int=Query(1, ge=1), per_page: int=Query(20, ge=1, le=
     - Employees: only their own audits
     - Admins: all audits
     """
-    query = db.query(Audit).options(joinedload(Audit.employee), joinedload(Audit.recording), joinedload(Audit.ai_analysis), joinedload(Audit.feedback_answers))
+    query = db.query(Audit).options(
+        joinedload(Audit.employee), 
+        joinedload(Audit.recording), 
+        joinedload(Audit.ai_analysis), 
+        joinedload(Audit.feedback_answers),
+        joinedload(Audit.qa_review).joinedload(QAAuditReview.reviewer)
+    )
     if current_user.role == UserRole.employee:
         query = query.filter(Audit.employee_id == current_user.id)
     if search:
@@ -100,7 +117,13 @@ async def get_audit_detail(audit_id: int, current_user: User=Depends(get_current
     Get full audit details.
     SECURITY: Employees can only access their own audits.
     """
-    audit = db.query(Audit).options(joinedload(Audit.employee), joinedload(Audit.recording), joinedload(Audit.ai_analysis), joinedload(Audit.feedback_answers)).filter(Audit.id == audit_id).first()
+    audit = db.query(Audit).options(
+        joinedload(Audit.employee), 
+        joinedload(Audit.recording), 
+        joinedload(Audit.ai_analysis), 
+        joinedload(Audit.feedback_answers),
+        joinedload(Audit.qa_review).joinedload(QAAuditReview.reviewer)
+    ).filter(Audit.id == audit_id).first()
     if not audit:
         raise HTTPException(status_code=404, detail='Audit not found')
     if current_user.role == UserRole.employee and audit.employee_id != current_user.id:
