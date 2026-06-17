@@ -3,11 +3,12 @@ import { createPortal } from 'react-dom'
 import { MessageSquare, Plus, RefreshCw, Trash2, Eye, X, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { feedbackAPI } from '../../api.js'
-import { Badge, Card, EmptyState, SectionHeader } from '../../index.jsx'
+import { Badge, Card, EmptyState, SectionHeader, formatDate } from '../../index.jsx'
 
 export default function AdminFeedbackPage() {
   const [forms, setForms] = useState([])
   const [submissions, setSubmissions] = useState([])
+  const [qaReviews, setQaReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -22,16 +23,20 @@ export default function AdminFeedbackPage() {
 
   
   const [selectedSubmission, setSelectedSubmission] = useState(null)
+  const [selectedQAReview, setSelectedQAReview] = useState(null)
+  const [feedbackTab, setFeedbackTab] = useState('self') // 'self' or 'qa'
 
   const loadData = async () => {
     setLoading(true)
     try {
-      const [formData, submissionData] = await Promise.all([
+      const [formData, submissionData, qaData] = await Promise.all([
         feedbackAPI.getForms(),
         feedbackAPI.getAllSubmissions({ per_page: 100 }),
+        feedbackAPI.getAllQAReviews({ per_page: 100 }),
       ])
       setForms(formData.forms || [])
       setSubmissions(submissionData.submissions || [])
+      setQaReviews(qaData.reviews || [])
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Could not load feedback')
     } finally {
@@ -209,41 +214,106 @@ export default function AdminFeedbackPage() {
         </Card>
 
         <Card className="p-5">
-          <h3 className="font-display font-semibold text-slate-800 dark:text-white mb-4">Feedback Database Logs</h3>
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.04] pb-3 mb-4 flex-wrap gap-2">
+            <h3 className="font-display font-semibold text-slate-800 dark:text-white">Feedback Database Logs</h3>
+            <div className="flex bg-slate-100 dark:bg-white/[0.04] rounded-lg p-0.5 text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => setFeedbackTab('self')}
+                className={`px-3 py-1 rounded-md transition-all ${
+                  feedbackTab === 'self'
+                    ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm font-semibold'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                }`}
+              >
+                Self-Evaluations
+              </button>
+              <button
+                type="button"
+                onClick={() => setFeedbackTab('qa')}
+                className={`px-3 py-1 rounded-md transition-all ${
+                  feedbackTab === 'qa'
+                    ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm font-semibold'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                }`}
+              >
+                HOD QA Reviews
+              </button>
+            </div>
+          </div>
           {loading ? (
             <p className="text-sm text-slate-500 dark:text-white/50">Loading submissions...</p>
-          ) : submissions.length === 0 ? (
-            <EmptyState icon={MessageSquare} title="No submissions yet" description="Self-evaluations appear here after employees submit them." />
-          ) : (
-            <div className="space-y-3">
-              {submissions.map((submission) => (
-                <div
-                  key={submission.id}
-                  onClick={() => setSelectedSubmission(submission)}
-                  className="group rounded-xl border border-slate-200 dark:border-white/[0.06] p-4 bg-slate-50/50 dark:bg-transparent hover:border-brand/40 dark:hover:border-brand/40 transition-all cursor-pointer flex items-start justify-between gap-3"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold text-slate-800 dark:text-white text-sm group-hover:text-brand transition-colors">
-                      {submission.audit?.audit_id} - {submission.audit?.client_name}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">
-                      By: {submission.submitted_by?.full_name} ({submission.submitted_by?.email})
-                    </p>
-                    {submission.comments && (
-                      <p className="text-xs text-slate-600 dark:text-white/60 mt-2 line-clamp-1 italic">
-                        "{submission.comments}"
+          ) : feedbackTab === 'self' ? (
+            submissions.length === 0 ? (
+              <EmptyState icon={MessageSquare} title="No submissions yet" description="Self-evaluations appear here after employees submit them." />
+            ) : (
+              <div className="space-y-3">
+                {submissions.map((submission) => (
+                  <div
+                    key={submission.id}
+                    onClick={() => setSelectedSubmission(submission)}
+                    className="group rounded-xl border border-slate-200 dark:border-white/[0.06] p-4 bg-slate-50/50 dark:bg-transparent hover:border-brand/40 dark:hover:border-brand/40 transition-all cursor-pointer flex items-start justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-800 dark:text-white text-sm group-hover:text-brand transition-colors">
+                        {submission.audit?.audit_id} - {submission.audit?.client_name}
                       </p>
-                    )}
+                      <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">
+                        By: {submission.submitted_by?.full_name} ({submission.submitted_by?.email})
+                      </p>
+                      {submission.comments && (
+                        <p className="text-xs text-slate-600 dark:text-white/60 mt-2 line-clamp-1 italic">
+                          "{submission.comments}"
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <Badge variant="orange">{submission.overall_rating || '-'} / 5</Badge>
+                      <span className="text-[10px] text-slate-400 dark:text-white/20 flex items-center gap-1">
+                        <Eye size={12} /> View
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    <Badge variant="orange">{submission.overall_rating || '-'} / 5</Badge>
-                    <span className="text-[10px] text-slate-400 dark:text-white/20 flex items-center gap-1">
-                      <Eye size={12} /> View
-                    </span>
+                ))}
+              </div>
+            )
+          ) : (
+            qaReviews.length === 0 ? (
+              <EmptyState icon={MessageSquare} title="No QA reviews yet" description="HOD QA reviews appear here after HODs submit them." />
+            ) : (
+              <div className="space-y-3">
+                {qaReviews.map((review) => (
+                  <div
+                    key={review.id}
+                    onClick={() => setSelectedQAReview(review)}
+                    className="group rounded-xl border border-slate-200 dark:border-white/[0.06] p-4 bg-slate-50/50 dark:bg-transparent hover:border-brand/40 dark:hover:border-brand/40 transition-all cursor-pointer flex items-start justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-800 dark:text-white text-sm group-hover:text-brand transition-colors">
+                        {review.audit?.audit_id} - {review.audit?.client_name}
+                      </p>
+                      <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">
+                        Reviewer: {review.reviewer?.full_name} ({review.reviewer?.email})
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Employee: {review.audit?.employee?.full_name || 'N/A'}
+                      </p>
+                      {review.comments && (
+                        <p className="text-xs text-slate-600 dark:text-white/60 mt-2 line-clamp-1 italic">
+                          "{review.comments}"
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <Badge variant="green">{review.rating || '-'} / 5</Badge>
+                      <span className="text-[10px] text-slate-400 dark:text-white/20 flex items-center gap-1">
+                        <Eye size={12} /> View
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
           )}
         </Card>
       </div>
@@ -362,6 +432,97 @@ export default function AdminFeedbackPage() {
               <button
                 type="button"
                 onClick={() => setSelectedSubmission(null)}
+                className="btn-secondary text-xs"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Selected QA Review Modal */}
+      {selectedQAReview && createPortal(
+        <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/[0.08] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-4 border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between">
+              <div>
+                <h4 className="font-display font-bold text-slate-800 dark:text-white">
+                  QA Review Details - {selectedQAReview.audit?.audit_id}
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-white/40 mt-0.5">
+                  Client: {selectedQAReview.audit?.client_name}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedQAReview(null)}
+                className="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-all flex items-center justify-center"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-5">
+              <div className="grid grid-cols-2 gap-4 text-xs p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/[0.04] rounded-xl">
+                <div>
+                  <span className="text-slate-400 dark:text-white/30 uppercase font-semibold text-[9px] block">Evaluator (HOD)</span>
+                  <span className="font-medium text-slate-800 dark:text-white">{selectedQAReview.reviewer?.full_name}</span>
+                  <span className="text-[10px] text-slate-400 dark:text-white/40 block">{selectedQAReview.reviewer?.email}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 dark:text-white/30 uppercase font-semibold text-[9px] block">Assigned Employee</span>
+                  <span className="font-medium text-slate-800 dark:text-white">{selectedQAReview.audit?.employee?.full_name || 'N/A'}</span>
+                  <span className="text-[10px] text-slate-400 dark:text-white/40 block">{selectedQAReview.audit?.employee?.email || ''}</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/[0.04] pb-3">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-wider">
+                    QA Compliance Rating
+                  </span>
+                  <div className="flex gap-1 items-center">
+                    <div className="flex text-amber-500 mr-2">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={14}
+                          className={
+                            i < Number(selectedQAReview.rating || 0)
+                              ? 'text-amber-500 fill-amber-500'
+                              : 'text-slate-200 dark:text-white/10'
+                          }
+                        />
+                      ))}
+                    </div>
+                    <Badge variant="green">{selectedQAReview.rating} / 5</Badge>
+                  </div>
+                </div>
+
+                {selectedQAReview.comments && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-wider block">
+                      Detailed Remarks
+                    </span>
+                    <p className="text-xs text-slate-600 dark:text-white/60 leading-relaxed italic bg-slate-50 dark:bg-white/[0.01] p-3 border border-slate-100 dark:border-white/[0.02] rounded-xl">
+                      "{selectedQAReview.comments}"
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-white/30 pt-2 border-t border-slate-100 dark:border-white/[0.04]">
+                  <span>Evaluation Date</span>
+                  <span>{selectedQAReview.created_at ? formatDate(selectedQAReview.created_at, true) : 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-white/[0.01] border-t border-slate-200 dark:border-white/[0.06] flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedQAReview(null)}
                 className="btn-secondary text-xs"
               >
                 Close
