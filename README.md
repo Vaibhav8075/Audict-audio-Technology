@@ -31,6 +31,67 @@ An AI-powered quality auditing and self-evaluation platform designed for custome
 
 ---
 
+## 🔄 System Workflow & Data Flow
+
+### 1. System Workflow Sequence
+This workflow outlines the step-by-step lifecycle of a call audit:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin
+    actor Agent as Call Agent (Employee)
+    actor HOD as HOD Evaluator
+    participant Sys as DCM System (Backend / AI)
+    participant Groq as Groq AI Cloud
+
+    Admin->>Sys: Create call audit & upload recording audio
+    activate Sys
+    Sys->>Sys: Write audio binary to storage disk
+    Sys->>Groq: Request transcription (Whisper Large V3)
+    Groq-->>Sys: Return text transcript
+    Sys->>Groq: Request call scoring & insights (Llama 3.3)
+    Groq-->>Sys: Return Quality Score, CSAT, Sentiment & Summary
+    Sys-->>Admin: Audit created & AI Insights ready
+    deactivate Sys
+
+    Sys-->>Agent: Send Dashboard Notification
+    Agent->>Sys: View audit details & play secure waveform audio
+    Agent->>Sys: Complete and submit Self-Evaluation Form
+
+    HOD->>Sys: View agent's evaluation responses
+    HOD->>Sys: Submit HOD QA Compliance Rating & Comments
+    Sys->>Sys: Compile scorecard metrics and leaderboard averages
+```
+
+### 2. Application Data Flow Architecture
+This diagram displays how user interactions traverse the platform infrastructure:
+
+```mermaid
+graph TD
+    User([User: Admin / HOD / Agent]) <-->|HTTPS / JSON Payload| Nginx[Nginx Reverse Proxy]
+    
+    subgraph Frontend [Frontend Layer]
+        Nginx <-->|Serves static build| HTML[React SPA: index.html / JS / CSS]
+        HTML -->|Audio Waveform rendering| WS[WaveSurfer.js]
+    end
+    
+    subgraph Backend [FastAPI Backend Service]
+        Nginx <-->|Reverse Proxy API requests| API[FastAPI REST Router]
+        API <-->|Secure Audio Stream| WS
+        API -->|Outbound HTTPS request| Groq[Groq AI Cloud API]
+        Scheduler[APScheduler Service] -->|Triggers Daily Expiry| Clean[File Cleanup Utility]
+    end
+
+    subgraph Storage [Server Data Storage]
+        API <-->|SQL Database Operations| DB[(PostgreSQL / SQLite Database)]
+        API <-->|Write/Read Audio File| Disk[(Filesystem: backend/storage/recordings/)]
+        Clean -->|Delete expired audio| Disk
+    end
+```
+
+---
+
 ##  Tech Stack
 
 ### Backend Layer
