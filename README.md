@@ -31,7 +31,7 @@ An AI-powered quality auditing and self-evaluation platform designed for custome
 
 ---
 
-## 🔄 System Workflow & Data Flow
+##  System Workflow & Data Flow
 
 ### 1. System Workflow Sequence
 This workflow outlines the step-by-step lifecycle of a call audit:
