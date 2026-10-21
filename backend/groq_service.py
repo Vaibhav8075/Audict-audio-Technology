@@ -4,6 +4,10 @@ from groq import Groq
 from dotenv import load_dotenv
 load_dotenv()
 
+
+class AIServiceError(Exception):
+    """The AI provider failed; callers record the failure instead of passing placeholder results off as real."""
+
 class GroqService:
 
     def __init__(self):
@@ -27,8 +31,7 @@ class GroqService:
                 response = self.client.audio.transcriptions.create(model=self.stt_model, file=audio_file, response_format='verbose_json')
             return {'text': response.text, 'confidence': getattr(response, 'confidence', 0.95), 'language': getattr(response, 'language', 'en'), 'duration': getattr(response, 'duration', None)}
         except Exception as e:
-            print(f'[Groq STT Error] {e}')
-            return self._mock_transcription()
+            raise AIServiceError(f'Transcription failed: {e}') from e
 
     async def analyze_call(self, transcript: str) -> dict:
         if not self.client:
@@ -41,11 +44,9 @@ class GroqService:
             result = json.loads(raw)
             return result
         except json.JSONDecodeError as e:
-            print(f'[Groq JSON Parse Error] {e}')
-            return self._mock_analysis()
+            raise AIServiceError(f'Analysis failed: the model did not return valid JSON ({e})') from e
         except Exception as e:
-            print(f'[Groq Analysis Error] {e}')
-            return self._mock_analysis()
+            raise AIServiceError(f'Analysis failed: {e}') from e
 
     async def generate_feedback_suggestions(self, summary: str, issues: list, sentiment: str) -> list:
         if not self.client:
@@ -57,8 +58,7 @@ class GroqService:
             raw = raw.replace('```json', '').replace('```', '').strip()
             return json.loads(raw)
         except Exception as e:
-            print(f'[Groq Suggestions Error] {e}')
-            return self._mock_suggestions()
+            raise AIServiceError(f'Suggestions failed: {e}') from e
 
     def _mock_transcription(self) -> dict:
         return {'text': "Hello, thank you for calling DCM support. My name is Sarah. How can I help you today? Yes, I understand your concern about the billing issue. Let me look into that for you right away. I can see here that there was a duplicate charge on your account from last month. I'll process a refund for you immediately. The refund should appear within 3-5 business days. Is there anything else I can help you with today? Great, have a wonderful day!", 'confidence': 0.94, 'language': 'en', 'duration': 180}
