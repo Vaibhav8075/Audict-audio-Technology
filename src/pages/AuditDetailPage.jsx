@@ -11,6 +11,50 @@ import { Card, SectionHeader, Badge, ProgressBar, Skeleton } from '../index.jsx'
 import { formatDate } from '../dateFormat.js'
 import useAuthStore from '../authStore'
 
+function AIStatusCard({ audit, canAnalyse, busy, onAnalyse }) {
+  const analyseButton = (label) => canAnalyse && audit.recording?.has_file && (
+    <button onClick={onAnalyse} disabled={busy} className="btn-primary mt-4 inline-flex">
+      {busy ? 'Starting...' : label}
+    </button>
+  )
+
+  if (audit.status === 'failed') {
+    return (
+      <Card className="p-8 text-center">
+        <AlertTriangle size={32} className="mx-auto text-brand opacity-60 mb-3" />
+        <p className="text-sm font-semibold text-slate-800 dark:text-white">AI Analysis Failed</p>
+        <p className="text-xs text-slate-500 dark:text-white/50 mt-1 max-w-md mx-auto break-words">
+          {audit.ai_error || 'No reason was recorded.'}
+        </p>
+        {analyseButton('Retry analysis')}
+      </Card>
+    )
+  }
+
+  if (audit.status === 'processing') {
+    return (
+      <Card className="p-8 text-center">
+        <Brain size={32} className="mx-auto text-brand opacity-30 animate-pulse mb-3" />
+        <p className="text-sm font-semibold text-slate-800 dark:text-white">AI Analysis is Processing</p>
+        <p className="text-xs text-slate-500 dark:text-white/40 mt-1 max-w-xs mx-auto">
+          Speech-to-text and scoring are running on the recording. This page updates when they finish.
+        </p>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="p-8 text-center">
+      <Brain size={32} className="mx-auto text-brand opacity-30 mb-3" />
+      <p className="text-sm font-semibold text-slate-800 dark:text-white">No AI Analysis Yet</p>
+      <p className="text-xs text-slate-500 dark:text-white/40 mt-1 max-w-xs mx-auto">
+        {audit.recording?.has_file ? 'This recording has not been analysed.' : 'The call is analysed automatically once its recording is uploaded.'}
+      </p>
+      {analyseButton('Analyse recording')}
+    </Card>
+  )
+}
+
 export default function AuditDetailPage() {
   const { id } = useParams()
   const [audit, setAudit] = useState(null)
@@ -26,7 +70,8 @@ export default function AuditDetailPage() {
   const [qaReview, setQaReview] = useState(null)
   const [qaForm, setQaForm] = useState({ rating: 5, comments: '' })
   const [submittingQA, setSubmittingQA] = useState(false)
-  
+  const [startingAnalysis, setStartingAnalysis] = useState(false)
+
   const wsContainerRef = useRef(null)
   const wavesurferRef = useRef(null)
 
@@ -47,11 +92,9 @@ export default function AuditDetailPage() {
         setAudit(auditData)
 
         
-        if (auditData.status === 'completed' || auditData.status === 'processing') {
-          const aiData = await aiAPI.getAnalysis(id)
-          if (aiData?.analysis) {
-            setAiAnalysis(aiData.analysis)
-          }
+        const aiData = await aiAPI.getAnalysis(id)
+        if (aiData?.analysis) {
+          setAiAnalysis(aiData.analysis)
         }
 
         
@@ -93,6 +136,39 @@ export default function AuditDetailPage() {
       if (audioSrc) URL.revokeObjectURL(audioSrc)
     }
   }, [id])
+
+  // While a call is being analysed, poll the light status endpoint and reload once it is done
+  useEffect(() => {
+    if (audit?.status !== 'processing') return
+    let finished = false
+    const timer = setInterval(async () => {
+      if (finished) return
+      try {
+        const state = await aiAPI.getStatus(id)
+        if (state.status === 'processing' || finished) return
+        finished = true
+        const [auditData, aiData] = await Promise.all([auditsAPI.getOne(id), aiAPI.getAnalysis(id)])
+        setAiAnalysis(aiData?.analysis || null)
+        setAudit(auditData)
+      } catch {
+        // a failed poll is retried on the next tick
+      }
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [audit?.status, id])
+
+  const handleStartAnalysis = async () => {
+    setStartingAnalysis(true)
+    try {
+      await aiAPI.triggerAnalysis(id)
+      setAudit((current) => ({ ...current, status: 'processing', ai_error: null }))
+      toast.success('Analysis started')
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not start the analysis')
+    } finally {
+      setStartingAnalysis(false)
+    }
+  }
 
   const handleQASubmit = async (e) => {
     e.preventDefault()
@@ -291,13 +367,15 @@ export default function AuditDetailPage() {
         ) : (
           <div className="text-center py-6 border border-dashed border-slate-200 dark:border-white/10 rounded-xl text-slate-400 dark:text-white/20">
             <Mic size={24} className="mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Audio recording is unavailable or has expired (retention limit reached).</p>
+            <p className="text-sm">
+              {audit.recording ? 'Audio recording has expired (retention limit reached).' : 'No recording has been uploaded for this call yet.'}
+            </p>
           </div>
         )}
       </Card>
 
       {}
-      {aiAnalysis ? (
+      {aiAnalysis && !['processing', 'failed'].includes(audit.status) ? (
         <div className="grid gap-6 lg:grid-cols-3">
           {}
           <div className="space-y-6">
@@ -305,7 +383,13 @@ export default function AuditDetailPage() {
               <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
                 <Brain size={16} className="text-brand" /> AI Quality Metrics
               </h3>
-              
+              {aiAnalysis.model_used === 'mock-fallback' && (
+                <p className="text-xs text-slate-500 dark:text-white/40">
+                  <Badge variant="yellow" className="mr-1">Demo data</Badge>
+                  No Groq API key is configured, so these numbers are placeholders, not an analysis of this call.
+                </p>
+              )}
+
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
@@ -402,13 +486,7 @@ export default function AuditDetailPage() {
           </div>
         </div>
       ) : (
-        <Card className="p-8 text-center">
-          <Brain size={32} className="mx-auto text-brand opacity-30 animate-pulse mb-3" />
-          <p className="text-sm font-semibold text-slate-800 dark:text-white">AI Analysis is Processing</p>
-          <p className="text-xs text-slate-500 dark:text-white/40 mt-1 max-w-xs mx-auto">
-            AI Speech-to-Text and evaluation are analyzing the conversation recording. Check back in a few moments.
-          </p>
-        </Card>
+        <AIStatusCard audit={audit} canAnalyse={user?.role === 'admin'} busy={startingAnalysis} onAnalyse={handleStartAnalysis} />
       )}
 
       {}
