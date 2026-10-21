@@ -35,6 +35,7 @@ const badgeVariants = {
   pending:  'badge-yellow',
   processing:'badge-blue',
   expired:  'badge-gray',
+  failed:   'badge-red',
   admin:    'badge-orange',
   employee: 'badge-blue',
   hod:      'badge-green',
