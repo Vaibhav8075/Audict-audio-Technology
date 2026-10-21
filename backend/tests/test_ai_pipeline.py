@@ -153,3 +153,19 @@ def test_analyses_cut_off_by_a_restart_are_marked_failed_at_startup(db, make_use
     db.expire_all()
     assert (stuck.status, stuck.ai_error) == (AuditStatus.failed, 'Interrupted by a server restart; retry the analysis')
     assert (done.status, done.ai_error) == (AuditStatus.completed, None)
+
+
+def test_new_upload_clears_the_previous_failure(client, auth, use_ai, call):
+    fake = use_ai(FakeAI(fail_at='transcribe'))
+    admin, agent, audit = call
+    upload(client, auth(admin), audit)
+    fake.fail_at = None
+    upload(client, auth(admin), audit, name='call-fixed.mp3')
+    assert audit_state(client, auth(admin), audit) == ('completed', None)
+
+
+def test_upload_is_refused_while_the_call_is_being_analysed(client, auth, db, call):
+    admin, agent, audit = call
+    audit.status = AuditStatus.processing
+    db.commit()
+    assert upload(client, auth(admin), audit).status_code == 409
