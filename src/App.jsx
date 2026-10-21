@@ -1,6 +1,6 @@
 
 
-import { useEffect } from 'react'
+import { lazy, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import useAuthStore from './authStore'
@@ -9,18 +9,20 @@ import useThemeStore from './themeStore'
 import DashboardLayout from './DashboardLayout'
 
 import LoginPage from './LoginPage'
-import DashboardPage from './pages/DashboardPage'
-import AuditsPage from './pages/AuditsPage'
-import AuditDetailPage from './pages/AuditDetailPage'
-import FeedbackPage from './pages/FeedbackPage'
-import AIInsightsPage from './pages/AIInsightsPage'
-import ProfilePage from './pages/ProfilePage'
-import AdminPage from './pages/admin/AdminPage'
-import AdminUsersPage from './pages/admin/AdminUsersPage'
-import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage'
-import AdminAuditsPage from './pages/admin/AdminAuditsPage'
-import AdminFeedbackPage from './pages/admin/AdminFeedbackPage'
-import ScorecardPage from './pages/ScorecardPage'
+
+// Pages load on first visit, so the login screen does not download charts, the audio player and admin tools
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const AuditsPage = lazy(() => import('./pages/AuditsPage'))
+const AuditDetailPage = lazy(() => import('./pages/AuditDetailPage'))
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage'))
+const AIInsightsPage = lazy(() => import('./pages/AIInsightsPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
+const AdminPage = lazy(() => import('./pages/admin/AdminPage'))
+const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'))
+const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage'))
+const AdminAuditsPage = lazy(() => import('./pages/admin/AdminAuditsPage'))
+const AdminFeedbackPage = lazy(() => import('./pages/admin/AdminFeedbackPage'))
+const ScorecardPage = lazy(() => import('./pages/ScorecardPage'))
 
 function ProtectedRoute({ children, adminOnly = false, allowedRoles }) {
   const { isAuthenticated, user } = useAuthStore()
