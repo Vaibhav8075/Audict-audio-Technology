@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 import os
 import bcrypt
 
-SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'dcm-super-secret-key-change-in-production')
+SECRET_KEY = os.getenv('JWT_SECRET_KEY') or os.getenv('API_KEY') or 'dcm-super-secret-key-change-in-production'
 ALGORITHM = os.getenv('JWT_ALGORITHM', 'HS256')
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '480'))
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv('REFRESH_TOKEN_EXPIRE_DAYS', '7'))
