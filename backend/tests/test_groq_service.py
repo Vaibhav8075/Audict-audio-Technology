@@ -88,3 +88,39 @@ def test_transcription_error_raises(tmp_path):
     service = service_with(FakeAsyncGroq())
     with pytest.raises(AIServiceError, match='Transcription failed'):
         asyncio.run(service.transcribe_audio(str(tmp_path / 'missing.mp3')))
+
+
+def test_model_reply_is_cleaned_before_it_is_stored():
+    messy = {**REPLY, 'call_quality_score': '105', 'customer_satisfaction_score': -3, 'sentiment': {'label': ' Positive ', 'score': 4},
+             'identified_issues': [{'issue': 'No ETA given', 'severity': 'high'}, '  ', 'Long hold'], 'keywords': 'outage'}
+    service = service_with(FakeAsyncGroq(replies=[json.dumps(messy)]))
+    result = asyncio.run(service.analyze_call('Agent: hello.'))
+    assert (result['call_quality_score'], result['customer_satisfaction_score']) == (100.0, 0.0)
+    assert result['sentiment'] == {'label': 'positive', 'score': 1.0, 'reasoning': ''}
+    assert result['identified_issues'] == ['No ETA given', 'Long hold'] and result['keywords'] == ['outage']
+
+
+def test_reply_without_scores_is_rejected():
+    service = service_with(FakeAsyncGroq(replies=[json.dumps({'summary': 'Short call.'})]))
+    with pytest.raises(AIServiceError, match='missing the summary or scores'):
+        asyncio.run(service.analyze_call('Agent: hello.'))
+
+
+def test_both_requests_use_json_mode():
+    service = service_with(FakeAsyncGroq(replies=[json.dumps(REPLY), json.dumps({'suggestions': ['Give an ETA']})]))
+    asyncio.run(service.analyze_call('Agent: hello.'))
+    asyncio.run(service.generate_feedback_suggestions('summary', [{'issue': 'no ETA'}], 'negative'))
+    assert [call['response_format'] for call in service.client.calls] == [{'type': 'json_object'}] * 2
+    assert 'Identified Issues: no ETA' in service.client.calls[1]['messages'][0]['content']
+
+
+@pytest.mark.parametrize('reply,expected', [('{"suggestions": ["Give an ETA", "Apologise"]}', ['Give an ETA', 'Apologise']), ('["Give an ETA"]', ['Give an ETA'])])
+def test_suggestions_accept_an_object_or_a_bare_list(reply, expected):
+    service = service_with(FakeAsyncGroq(replies=[reply]))
+    assert asyncio.run(service.generate_feedback_suggestions('summary', [], 'neutral')) == expected
+
+
+def test_empty_suggestions_are_an_error():
+    service = service_with(FakeAsyncGroq(replies=['{"suggestions": []}']))
+    with pytest.raises(AIServiceError, match='returned none'):
+        asyncio.run(service.generate_feedback_suggestions('summary', [], 'neutral'))
