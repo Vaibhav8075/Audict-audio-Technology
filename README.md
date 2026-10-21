@@ -173,6 +173,23 @@ npm run dev
 
 The application will be accessible at `http://localhost:5173`.
 
+### 3. Running the Tests
+The backend tests run against a throwaway SQLite database with AI calls stubbed out, so they need no
+PostgreSQL server or Groq key:
+```bash
+cd backend
+pip install pytest
+python -m pytest
+```
+
+Frontend checks:
+```bash
+npm run lint
+npm run build
+```
+
+GitHub Actions runs both on every pull request and on pushes to `main` (`.github/workflows/ci.yml`).
+
 ---
 
 ##  Production Deployment (Ubuntu Server with PostgreSQL)
