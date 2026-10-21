@@ -213,7 +213,7 @@ export default function AdminAuditsPage() {
                   )}
                   <label className="btn-secondary cursor-pointer justify-center whitespace-nowrap">
                     <Upload size={15} /> {uploadingId === audit.id ? 'Uploading...' : 'Upload audio'}
-                    <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg" className="hidden" disabled={uploadingId === audit.id} onChange={(event) => uploadAudio(audit.id, event.target.files?.[0])} />
+                    <input type="file" accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm,.flac,.mp4" className="hidden" disabled={uploadingId === audit.id} onChange={(event) => uploadAudio(audit.id, event.target.files?.[0])} />
                   </label>
                 </div>
               </div>
