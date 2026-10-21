@@ -64,7 +64,7 @@ export function Skeleton({ className, lines = 1 }) {
   return <div className={clsx('skeleton', className)} />
 }
 
-export function StatCard({ label, value, icon: Icon, trend, color = 'orange', loading }) {
+export function StatCard({ label, value, icon: Icon, trend, loading }) {
   const unifiedColorClass = 'text-brand-600 dark:text-brand-400 bg-brand-500/10 border-brand-500/20'
 
   return (

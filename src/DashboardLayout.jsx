@@ -158,8 +158,8 @@ export default function DashboardLayout() {
         return yTime - xTime
       })
       setNotifications(list)
-    } catch (err) {
-      
+    } catch {
+      // notifications are best-effort; keep showing the last list
     }
   }
 
