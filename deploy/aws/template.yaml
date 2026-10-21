@@ -1,0 +1,598 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  DCM Call Audit Platform on AWS free-tier services. CloudFront serves the React build from a
+  private S3 bucket and forwards /_/backend/* to FastAPI on EC2, which talks to a private
+  RDS PostgreSQL database. Secrets live in SSM Parameter Store; logs and alarms in CloudWatch.
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues: [t2.micro, t3.micro, t3.small]
+    Description: Free-tier eligible size (t2.micro on older accounts in some regions)
+  DBEngineVersion:
+    Type: String
+    Description: A PostgreSQL 16.x version (matches the server's pg_dump 16); deploy.ps1 picks the newest
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.micro
+    AllowedValues: [db.t3.micro, db.t4g.micro]
+  UbuntuAmi:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id
+  ExistingInstanceProfile:
+    Type: String
+    Default: ''
+    Description: Leave empty to create a least-privilege role; set to LabInstanceProfile in AWS Academy Learner Lab
+  CloudFrontPrefixList:
+    Type: String
+    Description: ID of the com.amazonaws.global.cloudfront.origin-facing managed prefix list (deploy.ps1 looks it up)
+  AlertEmail:
+    Type: String
+    Default: ''
+    Description: Email for alarm and budget notifications (optional)
+  CreateBudget:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Set false where AWS Budgets is not allowed (e.g. Learner Lab)
+  ParameterPrefix:
+    Type: String
+    Default: /dcm
+    Description: SSM Parameter Store path holding the app secrets
+
+Conditions:
+  CreateRole: !Equals [!Ref ExistingInstanceProfile, '']
+  HasEmail: !Not [!Equals [!Ref AlertEmail, '']]
+  MakeBudget: !And [!Condition HasEmail, !Equals [!Ref CreateBudget, 'true']]
+  IsUsEast1: !Equals [!Ref 'AWS::Region', us-east-1]
+
+Resources:
+  # ---------- Network: public subnets for EC2, private subnets for RDS, no NAT gateway ----------
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags: [{Key: Name, Value: dcm-vpc}]
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags: [{Key: Name, Value: dcm-public-a}]
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags: [{Key: Name, Value: dcm-public-b}]
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.11.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags: [{Key: Name, Value: dcm-private-a}]
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.12.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags: [{Key: Name, Value: dcm-private-b}]
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags: [{Key: Name, Value: dcm-public-rt}]
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnetARoutes:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+  PublicSubnetBRoutes:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+
+  # ---------- Security groups: only CloudFront reaches EC2, only EC2 reaches RDS ----------
+  AppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: HTTP from CloudFront origin-facing servers only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourcePrefixListId: !Ref CloudFrontPrefixList
+      Tags: [{Key: Name, Value: dcm-app-sg}]
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: PostgreSQL from the app server only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref AppSecurityGroup
+      Tags: [{Key: Name, Value: dcm-db-sg}]
+
+  # ---------- Database ----------
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private subnets for the DCM database
+      SubnetIds: [!Ref PrivateSubnetA, !Ref PrivateSubnetB]
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      DBInstanceIdentifier: !Sub '${AWS::StackName}-db'
+      Engine: postgres
+      EngineVersion: !Ref DBEngineVersion
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: '20'
+      StorageType: gp2
+      StorageEncrypted: true
+      DBName: dcm_db
+      MasterUsername: dcm_admin
+      MasterUserPassword: !Sub '{{resolve:ssm-secure:${ParameterPrefix}/db-password}}'
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VPCSecurityGroups: [!Ref DbSecurityGroup]
+      PubliclyAccessible: false
+      MultiAZ: false
+      BackupRetentionPeriod: 1
+      DeletionProtection: false
+      AutoMinorVersionUpgrade: true
+
+  # ---------- Storage: one private bucket for the site, releases and backups ----------
+  AppBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-db-dumps
+            Status: Enabled
+            Prefix: backups/db/
+            ExpirationInDays: 14
+  AppBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AppBucket
+      PolicyDocument:
+        Statement:
+          - Sid: CloudFrontReadsSiteOnly
+            Effect: Allow
+            Principal: {Service: cloudfront.amazonaws.com}
+            Action: s3:GetObject
+            Resource: !Sub '${AppBucket.Arn}/site/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${Distribution}'
+
+  # ---------- App server ----------
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Condition: CreateRole
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ec2.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy'
+      Policies:
+        - PolicyName: dcm-app-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:DeleteObject]
+                Resource: !Sub '${AppBucket.Arn}/*'
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt AppBucket.Arn
+              - Effect: Allow
+                Action: [ssm:GetParameter, ssm:GetParameters]
+                Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${ParameterPrefix}/*'
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Condition: CreateRole
+    Properties:
+      Roles: [!Ref InstanceRole]
+  AppLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/${AWS::StackName}/app'
+      RetentionInDays: 7
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        MetadataOptions:
+          HttpTokens: required
+          HttpPutResponseHopLimit: 2
+  # The Elastic IP is attached to the network card before the instance boots, so the address
+  # (and the CloudFront origin built from it) never changes mid-setup or after a stop/start
+  AppElasticIp:
+    Type: AWS::EC2::EIP
+    DependsOn: GatewayAttachment
+    Properties:
+      Domain: vpc
+  AppNetworkInterface:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      GroupSet: [!Ref AppSecurityGroup]
+      Tags: [{Key: Name, Value: dcm-app-eni}]
+  AppElasticIpAssociation:
+    Type: AWS::EC2::EIPAssociation
+    DependsOn: PublicDefaultRoute
+    Properties:
+      AllocationId: !GetAtt AppElasticIp.AllocationId
+      NetworkInterfaceId: !Ref AppNetworkInterface
+  AppInstance:
+    Type: AWS::EC2::Instance
+    DependsOn: AppElasticIpAssociation
+    Properties:
+      ImageId: !Ref UbuntuAmi
+      InstanceType: !Ref InstanceType
+      NetworkInterfaces:
+        - NetworkInterfaceId: !Ref AppNetworkInterface
+          DeviceIndex: '0'
+      IamInstanceProfile: !If [CreateRole, !Ref InstanceProfile, !Ref ExistingInstanceProfile]
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs: {VolumeSize: 20, VolumeType: gp3, Encrypted: true, DeleteOnTermination: true}
+      Tags: [{Key: Name, Value: dcm-app}]
+      UserData:
+        Fn::Base64: !Sub
+          - |
+            #!/bin/bash
+            set -euxo pipefail
+            exec > /var/log/dcm-bootstrap.log 2>&1
+            export DEBIAN_FRONTEND=noninteractive
+
+            # 1 GB swap so pip installs fit in the micro instance's memory
+            fallocate -l 1G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+            echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+            apt-get update
+            apt-get install -y nginx python3-venv python3-pip unzip rsync postgresql-client-16
+            curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscli.zip
+            unzip -q /tmp/awscli.zip -d /tmp && /tmp/aws/install
+            curl -fsSL https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb -o /tmp/cwagent.deb
+            dpkg -i /tmp/cwagent.deb
+
+            useradd --system --create-home --home-dir /opt/dcm --shell /usr/sbin/nologin dcm || true
+            mkdir -p /opt/dcm/backend/storage/recordings /opt/dcm/backend/storage/exports /var/log/dcm
+            chown -R dcm:dcm /opt/dcm /var/log/dcm
+
+            cat > /opt/dcm/env.sh <<'EOF'
+            BUCKET=${AppBucket}
+            REGION=${AWS::Region}
+            PREFIX=${ParameterPrefix}
+            DB_HOST=${DbHost}
+            EOF
+
+            # Redeploy script: pull the release from S3, write .env from Parameter Store, restart
+            cat > /opt/dcm/deploy.sh <<'EOF'
+            #!/bin/bash
+            set -euo pipefail
+            exec 9>/opt/dcm/deploy.lock && flock 9
+            source /opt/dcm/env.sh
+            param() { aws ssm get-parameter --region "$REGION" --with-decryption --name "$PREFIX/$1" --query Parameter.Value --output text; }
+            until aws s3 cp "s3://$BUCKET/releases/backend.zip" /tmp/backend.zip --region "$REGION"; do sleep 15; done
+            rm -rf /tmp/release && mkdir /tmp/release && unzip -q /tmp/backend.zip -d /tmp/release
+            rsync -a --delete --exclude storage --exclude .env /tmp/release/backend/ /opt/dcm/backend/
+            [ -d /opt/dcm/venv ] || python3 -m venv /opt/dcm/venv
+            /opt/dcm/venv/bin/pip install --quiet --upgrade pip
+            /opt/dcm/venv/bin/pip install --quiet -r /opt/dcm/backend/requirements.txt
+            umask 077
+            cat > /opt/dcm/backend/.env <<ENV
+            DATABASE_URL=postgresql://dcm_admin:$(param db-password)@$DB_HOST:5432/dcm_db
+            GROQ_API_KEY=$(param groq-api-key)
+            API_KEY=$(param jwt-secret)
+            STORAGE_PATH=storage/recordings
+            RECORDING_EXPIRY_DAYS=7
+            ENV
+            chown -R dcm:dcm /opt/dcm/backend
+            cd /opt/dcm/backend
+            sudo -u dcm ADMIN_EMAIL="$(param admin-email)" ADMIN_PASSWORD="$(param admin-password)" /opt/dcm/venv/bin/python create_admin.py
+            systemctl restart dcm-backend
+            echo "deployed $(date -u +%FT%TZ)"
+            EOF
+            chmod 750 /opt/dcm/deploy.sh
+
+            # Nightly backup: database dump and a mirror of the recordings folder to S3
+            cat > /opt/dcm/backup.sh <<'EOF'
+            #!/bin/bash
+            set -euo pipefail
+            source /opt/dcm/env.sh
+            PGPASSWORD=$(aws ssm get-parameter --region "$REGION" --with-decryption --name "$PREFIX/db-password" --query Parameter.Value --output text) \
+              pg_dump -h "$DB_HOST" -U dcm_admin dcm_db | gzip > /tmp/dcm_db.sql.gz
+            aws s3 cp /tmp/dcm_db.sql.gz "s3://$BUCKET/backups/db/dcm_db-$(date -u +%F).sql.gz" --region "$REGION"
+            aws s3 sync /opt/dcm/backend/storage/recordings "s3://$BUCKET/backups/recordings" --delete --region "$REGION"
+            rm -f /tmp/dcm_db.sql.gz
+            EOF
+            chmod 750 /opt/dcm/backup.sh
+            echo '30 20 * * * root /opt/dcm/backup.sh >> /var/log/dcm/backup.log 2>&1' > /etc/cron.d/dcm-backup
+
+            cat > /etc/systemd/system/dcm-backend.service <<'EOF'
+            [Unit]
+            Description=FastAPI backend for the DCM Audit System
+            After=network-online.target
+            Wants=network-online.target
+
+            [Service]
+            User=dcm
+            WorkingDirectory=/opt/dcm/backend
+            ExecStart=/opt/dcm/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --workers 1
+            Environment=PYTHONIOENCODING=utf-8
+            StandardOutput=append:/var/log/dcm/backend.log
+            StandardError=append:/var/log/dcm/backend.log
+            Restart=always
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF
+            systemctl daemon-reload
+            systemctl enable dcm-backend
+
+            # Nginx only proxies the API; the React build is served by CloudFront from S3
+            cat > /etc/nginx/sites-available/dcm <<'EOF'
+            server {
+                listen 80 default_server;
+                server_name _;
+                client_max_body_size 100M;
+
+                location /_/backend/ {
+                    proxy_pass http://127.0.0.1:8000/;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto https;
+                    proxy_read_timeout 120s;
+                }
+
+                location / {
+                    return 404;
+                }
+            }
+            EOF
+            ln -sf /etc/nginx/sites-available/dcm /etc/nginx/sites-enabled/dcm
+            rm -f /etc/nginx/sites-enabled/default
+            nginx -t && systemctl restart nginx
+
+            cat > /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'EOF'
+            {
+              "logs": {
+                "logs_collected": {
+                  "files": {
+                    "collect_list": [
+                      {"file_path": "/var/log/dcm/backend.log", "log_group_name": "${AppLogGroup}", "log_stream_name": "backend"},
+                      {"file_path": "/var/log/dcm/backup.log", "log_group_name": "${AppLogGroup}", "log_stream_name": "backup"},
+                      {"file_path": "/var/log/nginx/access.log", "log_group_name": "${AppLogGroup}", "log_stream_name": "nginx-access"},
+                      {"file_path": "/var/log/nginx/error.log", "log_group_name": "${AppLogGroup}", "log_stream_name": "nginx-error"},
+                      {"file_path": "/var/log/dcm-bootstrap.log", "log_group_name": "${AppLogGroup}", "log_stream_name": "bootstrap"}
+                    ]
+                  }
+                }
+              },
+              "metrics": {
+                "append_dimensions": {"InstanceId": "${!aws:InstanceId}"},
+                "metrics_collected": {
+                  "mem": {"measurement": ["mem_used_percent"]},
+                  "disk": {"measurement": ["used_percent"], "resources": ["/"]}
+                }
+              }
+            }
+            EOF
+            /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s \
+              -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+
+            /opt/dcm/deploy.sh
+            touch /opt/dcm/.bootstrapped
+          - DbHost: !GetAtt Database.Endpoint.Address
+
+  # ---------- CDN: HTTPS front door for both the site and the API ----------
+  SiteOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub '${AWS::StackName}-site-oac'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+  SpaRewriteFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub '${AWS::StackName}-spa-rewrite'
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Send client-side routes like /audits/12 to index.html
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          if (request.uri.indexOf('.') === -1) {
+            request.uri = '/index.html';
+          }
+          return request;
+        }
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: DCM Call Audit Platform
+        PriceClass: PriceClass_100
+        HttpVersion: http2and3
+        DefaultRootObject: index.html
+        Origins:
+          - Id: site
+            DomainName: !GetAtt AppBucket.RegionalDomainName
+            OriginPath: /site
+            OriginAccessControlId: !GetAtt SiteOriginAccessControl.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+          - Id: api
+            DomainName: !Sub
+              - 'ec2-${Dashed}.${Suffix}'
+              - Dashed: !Join ['-', !Split ['.', !Ref AppElasticIp]]
+                Suffix: !If [IsUsEast1, compute-1.amazonaws.com, !Sub '${AWS::Region}.compute.amazonaws.com']
+            CustomOriginConfig:
+              HTTPPort: 80
+              OriginProtocolPolicy: http-only
+              OriginReadTimeout: 60
+        DefaultCacheBehavior:
+          TargetOriginId: site
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt SpaRewriteFunction.FunctionMetadata.FunctionARN
+        CacheBehaviors:
+          - PathPattern: /_/backend/*
+            TargetOriginId: api
+            ViewerProtocolPolicy: https-only
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # Managed-CachingDisabled
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # Managed-AllViewerExceptHostHeader
+
+  # ---------- Monitoring and cost guard ----------
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${AWS::StackName}-alerts'
+  AlertSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasEmail
+    Properties:
+      TopicArn: !Ref AlertTopic
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+  InstanceStatusAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: App server failed its status checks
+      Namespace: AWS/EC2
+      MetricName: StatusCheckFailed
+      Dimensions: [{Name: InstanceId, Value: !Ref AppInstance}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions: [!Ref AlertTopic]
+  InstanceCpuAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: App server CPU above 80% for 15 minutes
+      Namespace: AWS/EC2
+      MetricName: CPUUtilization
+      Dimensions: [{Name: InstanceId, Value: !Ref AppInstance}]
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 3
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions: [!Ref AlertTopic]
+  DbStorageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Database free storage below 2 GB
+      Namespace: AWS/RDS
+      MetricName: FreeStorageSpace
+      Dimensions: [{Name: DBInstanceIdentifier, Value: !Ref Database}]
+      Statistic: Minimum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 2000000000
+      ComparisonOperator: LessThanThreshold
+      AlarmActions: [!Ref AlertTopic]
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: More than 5% of CloudFront responses are server errors
+      Namespace: AWS/CloudFront
+      MetricName: 5xxErrorRate
+      Dimensions:
+        - {Name: DistributionId, Value: !Ref Distribution}
+        - {Name: Region, Value: Global}
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+  MonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Condition: MakeBudget
+    Properties:
+      Budget:
+        BudgetName: !Sub '${AWS::StackName}-monthly'
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit: {Amount: 5, Unit: USD}
+      NotificationsWithSubscribers:
+        - Notification: {NotificationType: ACTUAL, ComparisonOperator: GREATER_THAN, Threshold: 20, ThresholdType: PERCENTAGE}
+          Subscribers: [{SubscriptionType: EMAIL, Address: !Ref AlertEmail}]
+        - Notification: {NotificationType: FORECASTED, ComparisonOperator: GREATER_THAN, Threshold: 100, ThresholdType: PERCENTAGE}
+          Subscribers: [{SubscriptionType: EMAIL, Address: !Ref AlertEmail}]
+
+Outputs:
+  SiteUrl:
+    Value: !Sub 'https://${Distribution.DomainName}'
+  BucketName:
+    Value: !Ref AppBucket
+  DistributionId:
+    Value: !Ref Distribution
+  InstanceId:
+    Value: !Ref AppInstance
+  DatabaseEndpoint:
+    Value: !GetAtt Database.Endpoint.Address
+  LogGroup:
+    Value: !Ref AppLogGroup
