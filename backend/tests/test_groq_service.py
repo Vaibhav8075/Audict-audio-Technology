@@ -156,3 +156,12 @@ def test_the_end_of_a_long_call_reaches_the_model():
     service = service_with(FakeAsyncGroq(replies=[json.dumps(REPLY)]))
     asyncio.run(service.analyze_call('Agent: hello. ' + 'Customer: still waiting. ' * 600 + 'Customer: thanks, that fixed it.'))
     assert 'Customer: thanks, that fixed it.' in service.client.calls[0]['messages'][0]['content']
+
+
+def test_prompt_gives_no_example_scores_to_copy():
+    # the old template showed 75.0 / 70.0 and the model sometimes returned exactly those numbers
+    service = service_with(FakeAsyncGroq(replies=[json.dumps(REPLY)]))
+    asyncio.run(service.analyze_call('Agent: hello.'))
+    prompt = service.client.calls[0]['messages'][0]['content']
+    assert '"call_quality_score": <number from 0 to 100>' in prompt
+    assert '75.0' not in prompt and '70.0' not in prompt and '"score": 0.0' not in prompt
