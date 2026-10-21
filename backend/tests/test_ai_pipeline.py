@@ -169,3 +169,19 @@ def test_upload_is_refused_while_the_call_is_being_analysed(client, auth, db, ca
     audit.status = AuditStatus.processing
     db.commit()
     assert upload(client, auth(admin), audit).status_code == 409
+
+
+def test_status_endpoint_reports_failures_without_logging_a_view(client, auth, db, use_ai, call):
+    from models import AuditAccessLog
+    use_ai(FakeAI(fail_at='analyze'))
+    admin, agent, audit = call
+    upload(client, auth(admin), audit)
+    res = client.get(f'/api/ai/status/{audit.id}', headers=auth(agent))
+    assert res.status_code == 200
+    assert res.json() == {'status': 'failed', 'ai_error': 'Analysis failed: Error code: 429 - rate limit reached'}
+    assert db.query(AuditAccessLog).count() == 0
+
+
+def test_status_endpoint_keeps_agents_to_their_own_calls(client, auth, make_user, call):
+    admin, agent, audit = call
+    assert client.get(f'/api/ai/status/{audit.id}', headers=auth(make_user())).status_code == 403
