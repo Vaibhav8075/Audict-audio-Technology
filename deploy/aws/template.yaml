@@ -36,6 +36,11 @@ Parameters:
     Default: 'true'
     AllowedValues: ['true', 'false']
     Description: Set false where AWS Budgets is not allowed (e.g. Learner Lab)
+  PriceClass:
+    Type: String
+    Default: PriceClass_200
+    AllowedValues: [PriceClass_100, PriceClass_200, PriceClass_All]
+    Description: PriceClass_100 has no edge locations in India; PriceClass_200 adds them (measured ~150 ms vs. local edge)
   ParameterPrefix:
     Type: String
     Default: /dcm
@@ -464,7 +469,7 @@ Resources:
       DistributionConfig:
         Enabled: true
         Comment: DCM Call Audit Platform
-        PriceClass: PriceClass_100
+        PriceClass: !Ref PriceClass
         HttpVersion: http2and3
         DefaultRootObject: index.html
         Origins:
