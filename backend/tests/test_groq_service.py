@@ -21,6 +21,8 @@ class FakeAsyncGroq:
     async def _transcribe(self, **kwargs):
         self.calls.append(kwargs)
         await asyncio.sleep(self.delay)
+        if isinstance(self.transcription, Exception):
+            raise self.transcription
         return SimpleNamespace(**self.transcription)
 
     async def _complete(self, **kwargs):
@@ -165,3 +167,26 @@ def test_prompt_gives_no_example_scores_to_copy():
     prompt = service.client.calls[0]['messages'][0]['content']
     assert '"call_quality_score": <number from 0 to 100>' in prompt
     assert '75.0' not in prompt and '70.0' not in prompt and '"score": 0.0' not in prompt
+
+
+class FakeStatusError(Exception):
+    """Shaped like groq.APIStatusError: the SDK keeps the response's error object in .body."""
+
+    def __init__(self, status_code, message):
+        super().__init__(f"Error code: {status_code} - {{'error': {{'message': '{message}', 'type': 'invalid_request_error'}}}}")
+        self.status_code, self.body = status_code, {'message': message, 'type': 'invalid_request_error'}
+
+
+def test_groq_errors_are_summarised_for_admins(audio_file):
+    service = service_with(FakeAsyncGroq(transcription=FakeStatusError(400, 'could not process file - is it a valid media file?')))
+    with pytest.raises(AIServiceError) as failure:
+        asyncio.run(service.transcribe_audio(audio_file))
+    assert str(failure.value) == 'Transcription failed: could not process file - is it a valid media file? (HTTP 400)'
+
+
+@pytest.mark.parametrize('status,reason', [(429, 'Groq rate limit reached; retry in a minute (HTTP 429)'), (401, 'Groq rejected the API key (HTTP 401)')])
+def test_rate_limit_and_key_errors_get_plain_reasons(status, reason):
+    service = service_with(FakeAsyncGroq(replies=[FakeStatusError(status, 'Rate limit reached for model in organization org_123')]))
+    with pytest.raises(AIServiceError) as failure:
+        asyncio.run(service.analyze_call('Agent: hello.'))
+    assert str(failure.value) == f'Analysis failed: {reason}'
