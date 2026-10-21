@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc, or_
@@ -161,12 +162,24 @@ async def update_audit(audit_id: int, data: AuditUpdate, current_user: User=Depe
 
 @router.delete('/{audit_id}')
 async def delete_audit(audit_id: int, current_user: User=Depends(get_current_admin), db: Session=Depends(get_db)):
-    """Delete an audit (admin only) - DOES NOT delete feedback"""
+    """Delete an audit with its recording, AI analysis, QA review and access log (admin only).
+    Audits with feedback submissions are kept, so submitted feedback is never deleted."""
     audit = db.query(Audit).filter(Audit.id == audit_id).first()
     if not audit:
         raise HTTPException(status_code=404, detail='Audit not found')
+    if audit.feedback_answers:
+        raise HTTPException(status_code=409, detail='This audit has feedback submissions and cannot be deleted')
+    # these rows reference the audit through NOT NULL keys, so they must go first
+    file_path = audit.recording.file_path if audit.recording else None
+    if audit.recording:
+        db.delete(audit.recording)
+    if audit.ai_analysis:
+        db.delete(audit.ai_analysis)
+    db.query(AuditAccessLog).filter(AuditAccessLog.audit_id == audit.id).delete(synchronize_session=False)
     db.delete(audit)
     db.commit()
+    if file_path and os.path.exists(file_path):
+        os.remove(file_path)
     return {'message': 'Audit deleted'}
 
 @router.get('/stats/summary')

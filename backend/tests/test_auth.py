@@ -40,3 +40,17 @@ def test_invalid_or_foreign_tokens_are_rejected(client, make_user):
     assert client.get('/api/auth/me', headers={'Authorization': 'Bearer not-a-jwt'}).status_code == 401
     forged = jwt.encode({'sub': str(user.id), 'type': 'access'}, 'dcm-super-secret-key-change-in-production', algorithm='HS256')
     assert client.get('/api/auth/me', headers={'Authorization': f'Bearer {forged}'}).status_code == 401
+
+
+def test_refresh_token_cannot_be_used_as_an_access_token(client, make_user):
+    make_user(email='agent@dcm-demo.com')
+    tokens = client.post('/api/auth/login', json={'email': 'agent@dcm-demo.com', 'password': PASSWORD}).json()
+    # refresh tokens live 7 days instead of 8 hours, so they must only work at /api/auth/refresh
+    assert client.get('/api/auth/me', headers={'Authorization': f"Bearer {tokens['refresh_token']}"}).status_code == 401
+    assert client.get('/api/auth/me', headers={'Authorization': f"Bearer {tokens['access_token']}"}).status_code == 200
+
+
+def test_token_with_a_malformed_subject_is_rejected(client):
+    from auth_utils import create_access_token
+    token = create_access_token({'sub': 'not-a-number'})
+    assert client.get('/api/auth/me', headers={'Authorization': f'Bearer {token}'}).status_code == 401
