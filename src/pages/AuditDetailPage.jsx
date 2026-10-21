@@ -7,7 +7,8 @@ import {
 import toast from 'react-hot-toast'
 import WaveSurfer from 'wavesurfer.js'
 import api, { auditsAPI, aiAPI, feedbackAPI } from '../api.js'
-import { Card, SectionHeader, Badge, ProgressBar, Skeleton, formatDate } from '../index.jsx'
+import { Card, SectionHeader, Badge, ProgressBar, Skeleton } from '../index.jsx'
+import { formatDate } from '../dateFormat.js'
 import useAuthStore from '../authStore'
 
 export default function AuditDetailPage() {

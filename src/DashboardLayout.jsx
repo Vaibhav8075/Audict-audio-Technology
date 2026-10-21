@@ -1,6 +1,6 @@
 
 
-import { useState, useEffect, useMemo } from 'react'
+import { Suspense, useState, useEffect, useMemo } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -13,6 +13,7 @@ import useThemeStore from './themeStore'
 import { auditsAPI } from './api'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
+import { Skeleton } from './index.jsx'
 
 const employeeNav = [
   { label: 'Dashboard',    icon: LayoutDashboard, to: '/dashboard' },
@@ -158,8 +159,8 @@ export default function DashboardLayout() {
         return yTime - xTime
       })
       setNotifications(list)
-    } catch (err) {
-      
+    } catch {
+      // notifications are best-effort; keep showing the last list
     }
   }
 
@@ -461,7 +462,9 @@ export default function DashboardLayout() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
           >
-            <Outlet context={{ searchQuery, setSearchQuery }} />
+            <Suspense fallback={<Skeleton lines={6} />}>
+              <Outlet context={{ searchQuery, setSearchQuery }} />
+            </Suspense>
           </motion.div>
         </main>
       </div>

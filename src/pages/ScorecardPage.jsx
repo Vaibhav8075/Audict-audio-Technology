@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import {
-  TrendingUp, Award, MessageSquare, Shield,
+  TrendingUp, Award,
   RefreshCw, Search, ArrowUpDown, Download,
-  User, BarChart3, HelpCircle
+  BarChart3
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { adminAPI } from '../api.js'

@@ -64,7 +64,7 @@ export function Skeleton({ className, lines = 1 }) {
   return <div className={clsx('skeleton', className)} />
 }
 
-export function StatCard({ label, value, icon: Icon, trend, color = 'orange', loading }) {
+export function StatCard({ label, value, icon: Icon, trend, loading }) {
   const unifiedColorClass = 'text-brand-600 dark:text-brand-400 bg-brand-500/10 border-brand-500/20'
 
   return (
@@ -218,31 +218,4 @@ export function ProgressBar({ value, max = 100, color = 'orange', showLabel = fa
       </div>
     </div>
   )
-}
-
-export function parseDateTime(dateStr, isUTC = false) {
-  if (!dateStr) return null
-  let normalized = dateStr
-  if (typeof normalized === 'string') {
-    normalized = normalized.trim()
-    if (normalized.includes(' ') && !normalized.includes('T')) {
-      normalized = normalized.replace(' ', 'T')
-    }
-    if (isUTC) {
-      if (!normalized.endsWith('Z') && !normalized.match(/[+-]\d{2}:?\d{2}$/)) {
-        normalized = normalized + 'Z'
-      }
-    }
-  }
-  return new Date(normalized)
-}
-
-export function formatDateTime(dateStr, isUTC = false) {
-  const d = parseDateTime(dateStr, isUTC)
-  return d ? d.toLocaleString() : 'N/A'
-}
-
-export function formatDate(dateStr, isUTC = false) {
-  const d = parseDateTime(dateStr, isUTC)
-  return d ? d.toLocaleDateString() : 'N/A'
 }

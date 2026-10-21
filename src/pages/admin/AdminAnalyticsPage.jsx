@@ -9,7 +9,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts'
 import { adminAPI } from '../../api.js'
-import { Card, SectionHeader, StatCard, Skeleton, Badge, ProgressBar } from '../../index.jsx'
+import { Card, SectionHeader, StatCard, Skeleton, ProgressBar } from '../../index.jsx'
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (

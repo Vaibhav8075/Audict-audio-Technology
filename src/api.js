@@ -24,7 +24,7 @@ api.interceptors.request.use(
           config.headers.Authorization = `Bearer ${state.accessToken}`
         }
       } catch {
-        
+        // unreadable stored session: send the request without a token
       }
     }
     return config
@@ -142,7 +142,7 @@ export const recordingsAPI = {
         const { state } = JSON.parse(stored)
         token = state?.accessToken || ''
       } catch {
-        
+        // unreadable stored session: stream without a token
       }
     }
     return { url: `${BASE_URL}/api/recordings/stream/${auditId}`, token }

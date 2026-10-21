@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom'
 import { MessageSquare, Plus, RefreshCw, Trash2, Eye, X, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { feedbackAPI } from '../../api.js'
-import { Badge, Card, EmptyState, SectionHeader, formatDate } from '../../index.jsx'
+import { Badge, Card, EmptyState, SectionHeader } from '../../index.jsx'
+import { formatDate } from '../../dateFormat.js'
 
 export default function AdminFeedbackPage() {
   const [forms, setForms] = useState([])
