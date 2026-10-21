@@ -109,6 +109,16 @@ async def get_ai_analysis(audit_id: int, current_user: User=Depends(get_current_
         return {'analysis': None, 'message': 'No analysis available yet'}
     return {'analysis': ai_to_dict(analysis)}
 
+@router.get('/status/{audit_id}')
+async def get_ai_status(audit_id: int, current_user: User=Depends(get_current_user), db: Session=Depends(get_db)):
+    """Analysis state for polling; unlike GET /api/audits/{id} it writes no access-log entry"""
+    audit = db.query(Audit).filter(Audit.id == audit_id).first()
+    if not audit:
+        raise HTTPException(status_code=404, detail='Audit not found')
+    if current_user.role == UserRole.employee and audit.employee_id != current_user.id:
+        raise HTTPException(status_code=403, detail='Access denied')
+    return {'status': audit.status.value, 'ai_error': audit.ai_error}
+
 @router.get('/dashboard-stats')
 async def get_ai_dashboard_stats(current_user: User=Depends(get_current_user), db: Session=Depends(get_db)):
     """

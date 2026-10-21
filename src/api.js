@@ -209,6 +209,10 @@ export const aiAPI = {
     const res = await api.get(`/api/ai/analysis/${auditId}`)
     return res.data
   },
+  getStatus: async (auditId) => {
+    const res = await api.get(`/api/ai/status/${auditId}`)
+    return res.data
+  },
   getDashboardStats: async () => {
     const res = await api.get('/api/ai/dashboard-stats')
     return res.data

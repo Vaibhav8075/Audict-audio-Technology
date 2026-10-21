@@ -60,6 +60,20 @@ def fit_transcript(text: str, budget: int=TRANSCRIPT_CHAR_BUDGET) -> str:
     return f'{text[:head]}\n[... middle of the call omitted for length ...]\n{text[len(text) - (budget - head):]}'
 
 
+def describe_error(error) -> str:
+    """A short reason for admins: Groq's own message and HTTP status when the API answered, else the exception text."""
+    status = getattr(error, 'status_code', None)
+    if status == 401:
+        return 'Groq rejected the API key (HTTP 401)'
+    if status == 429:  # Groq's text for this names the organisation and its limits
+        return 'Groq rate limit reached; retry in a minute (HTTP 429)'
+    body = getattr(error, 'body', None)
+    if isinstance(body, dict):
+        body = body.get('error', body)
+    message = body.get('message') if isinstance(body, dict) else None
+    return f'{message} (HTTP {status})' if message and status else str(error)
+
+
 def segment_confidence(segments):
     """Duration-weighted mean token probability, exp(avg_logprob), over Whisper's segments; None without segments."""
     total = weighted = 0.0
@@ -97,7 +111,7 @@ class GroqService:
             # Whisper reports no confidence score; derive one from the segments instead of assuming 0.95
             return {'text': response.text, 'confidence': segment_confidence(getattr(response, 'segments', None)), 'language': getattr(response, 'language', None), 'duration': getattr(response, 'duration', None)}
         except Exception as e:
-            raise AIServiceError(f'Transcription failed: {e}') from e
+            raise AIServiceError(f'Transcription failed: {describe_error(e)}') from e
 
     async def analyze_call(self, transcript: str) -> dict:
         if not self.client:
@@ -111,7 +125,7 @@ class GroqService:
         except json.JSONDecodeError as e:
             raise AIServiceError(f'Analysis failed: the model did not return valid JSON ({e})') from e
         except Exception as e:
-            raise AIServiceError(f'Analysis failed: {e}') from e
+            raise AIServiceError(f'Analysis failed: {describe_error(e)}') from e
 
     async def generate_feedback_suggestions(self, summary: str, issues: list, sentiment: str) -> list:
         if not self.client:
@@ -124,7 +138,7 @@ class GroqService:
             data = json.loads(raw)
             suggestions = _texts(data.get('suggestions') if isinstance(data, dict) else data)
         except Exception as e:
-            raise AIServiceError(f'Suggestions failed: {e}') from e
+            raise AIServiceError(f'Suggestions failed: {describe_error(e)}') from e
         if not suggestions:
             raise AIServiceError('Suggestions failed: the model returned none')
         return suggestions
