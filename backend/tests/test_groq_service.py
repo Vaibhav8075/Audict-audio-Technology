@@ -137,3 +137,22 @@ def test_confidence_comes_from_whisper_segments(audio_file):
 def test_confidence_is_unknown_without_segments(audio_file):
     service = service_with(FakeAsyncGroq(transcription={'text': 'hello'}))
     assert asyncio.run(service.transcribe_audio(audio_file))['confidence'] is None
+
+
+def test_short_transcripts_are_sent_whole():
+    from groq_service import fit_transcript
+    assert fit_transcript('Agent: hello.', budget=100) == 'Agent: hello.'
+
+
+def test_long_transcripts_keep_the_start_and_the_end():
+    from groq_service import fit_transcript
+    text = 'START ' + 'x' * 10_000 + ' CUSTOMER AGREED TO THE PLAN'
+    fitted = fit_transcript(text, budget=1000)
+    assert fitted.startswith('START ') and fitted.endswith('CUSTOMER AGREED TO THE PLAN')
+    assert '[... middle of the call omitted for length ...]' in fitted and len(fitted) < 1100
+
+
+def test_the_end_of_a_long_call_reaches_the_model():
+    service = service_with(FakeAsyncGroq(replies=[json.dumps(REPLY)]))
+    asyncio.run(service.analyze_call('Agent: hello. ' + 'Customer: still waiting. ' * 600 + 'Customer: thanks, that fixed it.'))
+    assert 'Customer: thanks, that fixed it.' in service.client.calls[0]['messages'][0]['content']
