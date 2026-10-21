@@ -10,7 +10,10 @@ router = APIRouter()
 STORAGE_PATH = os.getenv('STORAGE_PATH', 'storage/recordings')
 RECORDING_EXPIRY_DAYS = int(os.getenv('RECORDING_EXPIRY_DAYS', '7'))
 MAX_FILE_SIZE_MB = int(os.getenv('MAX_FILE_SIZE_MB', '100'))
-ALLOWED_MIME_TYPES = {'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/mp4'}
+# Formats Groq Whisper accepts. Browsers label them inconsistently (audio/x-m4a, audio/x-wav, application/octet-stream),
+# so the extension decides and the reported type only has to be audio or generic.
+ALLOWED_EXTENSIONS = {'.mp3', '.wav', '.ogg', '.m4a', '.mp4', '.webm', '.flac'}
+GENERIC_TYPES = {'', 'application/octet-stream', 'video/mp4', 'video/webm'}
 
 @router.post('/upload/{audit_id}')
 async def upload_recording(audit_id: int, background_tasks: BackgroundTasks, file: UploadFile=File(...), current_user: User=Depends(get_current_admin), db: Session=Depends(get_db)):
@@ -24,14 +27,16 @@ async def upload_recording(audit_id: int, background_tasks: BackgroundTasks, fil
     if audit.status == AuditStatus.processing:
         raise HTTPException(status_code=409, detail='This call is still being analysed; upload the new recording when it finishes')
     existing = db.query(Recording).filter(Recording.audit_id == audit_id).first()
-    content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
-    if content_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(status_code=400, detail=f'Invalid file type. Allowed: MP3, WAV, OGG, M4A')
+    file_ext = os.path.splitext(file.filename or '')[1].lower()
+    content_type = (file.content_type or '').lower()
+    if file_ext not in ALLOWED_EXTENSIONS or not (content_type.startswith('audio/') or content_type in GENERIC_TYPES):
+        raise HTTPException(status_code=400, detail='Invalid file type. Allowed: MP3, WAV, OGG, M4A, MP4, WEBM, FLAC')
+    if not content_type.startswith('audio/'):
+        content_type = mimetypes.guess_type(file.filename)[0] or 'application/octet-stream'
     contents = await file.read()
     file_size_mb = len(contents) / (1024 * 1024)
     if file_size_mb > MAX_FILE_SIZE_MB:
         raise HTTPException(status_code=400, detail=f'File too large. Maximum size: {MAX_FILE_SIZE_MB}MB')
-    file_ext = os.path.splitext(file.filename)[1].lower() or '.mp3'
     secure_filename = f'{uuid.uuid4().hex}{file_ext}'
     audit_dir = os.path.join(STORAGE_PATH, str(audit_id))
     os.makedirs(audit_dir, exist_ok=True)
