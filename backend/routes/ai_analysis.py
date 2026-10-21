@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 import time
+from datetime import datetime
 from database.connection import get_db
 from models import User, Audit, Recording, AIAnalysis, UserRole, SentimentLabel, AuditStatus
 from dependencies import get_current_user, get_current_admin
@@ -51,8 +52,13 @@ async def process_ai_analysis(audit_id: int, recording_path: str):
         sentiment_str = analysis.get('sentiment', {}).get('label', 'neutral').lower()
         sentiment_map = {'positive': SentimentLabel.positive, 'neutral': SentimentLabel.neutral, 'negative': SentimentLabel.negative}
         sentiment_label = sentiment_map.get(sentiment_str, SentimentLabel.neutral)
-        ai_record = AIAnalysis(audit_id=audit_id, transcription=transcript, transcription_confidence=transcription_result.get('confidence'), call_summary=analysis.get('summary'), key_points=analysis.get('key_points', []), sentiment_label=sentiment_label, sentiment_score=analysis.get('sentiment', {}).get('score', 0.0), sentiment_details=analysis.get('sentiment', {}), keywords=analysis.get('keywords', []), topics=analysis.get('topics', []), call_quality_score=analysis.get('call_quality_score'), customer_satisfaction_score=analysis.get('customer_satisfaction_score'), identified_issues=analysis.get('identified_issues', []), ai_suggestions=analysis.get('suggestions', []), processing_time=processing_time, model_used='mock-fallback' if analysis.get('_mock') else groq_service.llm_model)
-        db.add(ai_record)
+        fields = dict(transcription=transcript, transcription_confidence=transcription_result.get('confidence'), call_summary=analysis.get('summary'), key_points=analysis.get('key_points', []), sentiment_label=sentiment_label, sentiment_score=analysis.get('sentiment', {}).get('score', 0.0), sentiment_details=analysis.get('sentiment', {}), keywords=analysis.get('keywords', []), topics=analysis.get('topics', []), call_quality_score=analysis.get('call_quality_score'), customer_satisfaction_score=analysis.get('customer_satisfaction_score'), identified_issues=analysis.get('identified_issues', []), ai_suggestions=analysis.get('suggestions', []), processing_time=processing_time, model_used='mock-fallback' if analysis.get('_mock') else groq_service.llm_model, processed_at=datetime.utcnow())
+        ai_record = db.query(AIAnalysis).filter(AIAnalysis.audit_id == audit_id).first()
+        if ai_record:  # a re-uploaded recording replaces the earlier analysis
+            for field, value in fields.items():
+                setattr(ai_record, field, value)
+        else:
+            db.add(AIAnalysis(audit_id=audit_id, **fields))
         audit = db.query(Audit).filter(Audit.id == audit_id).first()
         if audit:
             audit.status = AuditStatus.completed

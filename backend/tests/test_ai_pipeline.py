@@ -115,3 +115,14 @@ def test_demo_mode_without_api_key_labels_its_results(client, auth, call):
     upload(client, auth(admin), audit)
     analysis = client.get(f'/api/ai/analysis/{audit.id}', headers=auth(admin)).json()['analysis']
     assert analysis['model_used'] == 'mock-fallback'
+
+
+def test_reuploading_a_recording_replaces_the_previous_analysis(client, auth, use_ai, call):
+    fake = use_ai(FakeAI())
+    admin, agent, audit = call
+    upload(client, auth(admin), audit)
+    fake.analysis = {**GOOD_ANALYSIS, 'summary': 'Second recording.', 'call_quality_score': 55}
+    upload(client, auth(admin), audit, name='call-v2.mp3')
+    assert audit_state(client, auth(admin), audit) == ('completed', None)
+    analysis = client.get(f'/api/ai/analysis/{audit.id}', headers=auth(admin)).json()['analysis']
+    assert (analysis['call_summary'], analysis['call_quality_score']) == ('Second recording.', 55)
