@@ -6,7 +6,8 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { adminAPI } from '../../api.js'
-import { Card, SectionHeader, StatCard, Skeleton, formatDateTime } from '../../index.jsx'
+import { Card, SectionHeader, StatCard, Skeleton } from '../../index.jsx'
+import { formatDateTime } from '../../dateFormat.js'
 
 export default function AdminPage() {
   const [logs, setLogs] = useState([])

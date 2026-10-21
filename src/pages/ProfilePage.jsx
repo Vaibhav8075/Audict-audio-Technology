@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { User, ShieldCheck, Mail, Building, Clock, Lock, Save, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { usersAPI } from '../api.js'
-import { Card, SectionHeader, Badge, formatDate } from '../index.jsx'
+import { Card, SectionHeader, Badge } from '../index.jsx'
+import { formatDate } from '../dateFormat.js'
 import useAuthStore from '../authStore.js'
 
 export default function ProfilePage() {
