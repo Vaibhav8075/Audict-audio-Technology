@@ -126,3 +126,20 @@ def test_reuploading_a_recording_replaces_the_previous_analysis(client, auth, us
     assert audit_state(client, auth(admin), audit) == ('completed', None)
     analysis = client.get(f'/api/ai/analysis/{audit.id}', headers=auth(admin)).json()['analysis']
     assert (analysis['call_summary'], analysis['call_quality_score']) == ('Second recording.', 55)
+
+
+def test_whisper_duration_and_confidence_are_stored(client, auth, db, use_ai, call):
+    use_ai(FakeAI(duration=125.4))
+    admin, agent, audit = call
+    upload(client, auth(admin), audit)
+    detail = client.get(f'/api/audits/{audit.id}', headers=auth(admin)).json()
+    assert detail['call_duration'] == 125 and detail['recording']['duration'] == 125.4
+    assert client.get(f'/api/ai/analysis/{audit.id}', headers=auth(admin)).json()['analysis']['transcription_confidence'] == 0.91
+
+
+def test_a_call_duration_entered_by_an_admin_is_kept(client, auth, use_ai, make_user, make_audit):
+    use_ai(FakeAI(duration=125.4))
+    admin = make_user('admin')
+    audit = make_audit(make_user(), call_duration=300)
+    upload(client, auth(admin), audit)
+    assert client.get(f'/api/audits/{audit.id}', headers=auth(admin)).json()['call_duration'] == 300

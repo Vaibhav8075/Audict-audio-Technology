@@ -60,9 +60,15 @@ async def process_ai_analysis(audit_id: int, recording_path: str):
         else:
             db.add(AIAnalysis(audit_id=audit_id, **fields))
         audit = db.query(Audit).filter(Audit.id == audit_id).first()
+        duration = transcription_result.get('duration')
         if audit:
             audit.status = AuditStatus.completed
             audit.ai_error = None
+            if duration and not audit.call_duration:
+                audit.call_duration = round(duration)
+        recording = db.query(Recording).filter(Recording.audit_id == audit_id).first()
+        if recording and duration:
+            recording.duration = duration
         db.commit()
         print(f'[AI] Analysis completed for audit {audit_id} in {processing_time:.2f}s')
     except Exception as e:

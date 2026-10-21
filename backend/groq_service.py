@@ -50,6 +50,18 @@ def normalize_analysis(data) -> dict:
     return result
 
 
+def segment_confidence(segments):
+    """Duration-weighted mean token probability, exp(avg_logprob), over Whisper's segments; None without segments."""
+    total = weighted = 0.0
+    for seg in segments or []:
+        if not isinstance(seg, dict) or seg.get('avg_logprob') is None:
+            continue
+        span = max(float(seg.get('end') or 0) - float(seg.get('start') or 0), 0.01)
+        weighted += math.exp(float(seg['avg_logprob'])) * span
+        total += span
+    return round(weighted / total, 3) if total else None
+
+
 class GroqService:
 
     def __init__(self):
@@ -72,7 +84,8 @@ class GroqService:
         try:
             audio = await asyncio.to_thread(Path(file_path).read_bytes)
             response = await self.client.audio.transcriptions.create(model=self.stt_model, file=(os.path.basename(file_path), audio), response_format='verbose_json')
-            return {'text': response.text, 'confidence': getattr(response, 'confidence', 0.95), 'language': getattr(response, 'language', 'en'), 'duration': getattr(response, 'duration', None)}
+            # Whisper reports no confidence score; derive one from the segments instead of assuming 0.95
+            return {'text': response.text, 'confidence': segment_confidence(getattr(response, 'segments', None)), 'language': getattr(response, 'language', None), 'duration': getattr(response, 'duration', None)}
         except Exception as e:
             raise AIServiceError(f'Transcription failed: {e}') from e
 
@@ -107,7 +120,7 @@ class GroqService:
         return suggestions
 
     def _mock_transcription(self) -> dict:
-        return {'text': "Hello, thank you for calling DCM support. My name is Sarah. How can I help you today? Yes, I understand your concern about the billing issue. Let me look into that for you right away. I can see here that there was a duplicate charge on your account from last month. I'll process a refund for you immediately. The refund should appear within 3-5 business days. Is there anything else I can help you with today? Great, have a wonderful day!", 'confidence': 0.94, 'language': 'en', 'duration': 180}
+        return {'text': "Hello, thank you for calling DCM support. My name is Sarah. How can I help you today? Yes, I understand your concern about the billing issue. Let me look into that for you right away. I can see here that there was a duplicate charge on your account from last month. I'll process a refund for you immediately. The refund should appear within 3-5 business days. Is there anything else I can help you with today? Great, have a wonderful day!", 'confidence': None, 'language': 'en', 'duration': None}
 
     def _mock_analysis(self) -> dict:
         return {'_mock': True, 'summary': 'Customer called regarding a duplicate billing charge on their account. Agent Sarah identified the issue quickly and processed a refund. The interaction was professional and resolved satisfactorily.', 'key_points': ['Customer reported duplicate billing charge', 'Agent verified the issue in the system', 'Refund processed - 3-5 business days', 'Customer satisfied with resolution'], 'sentiment': {'label': 'positive', 'score': 0.72, 'reasoning': 'Customer issue was resolved promptly with a professional response'}, 'keywords': ['billing', 'refund', 'duplicate charge', 'account', 'resolution'], 'topics': ['billing support', 'refund processing'], 'call_quality_score': 85.0, 'customer_satisfaction_score': 82.0, 'identified_issues': ['Duplicate charge on account'], 'suggestions': ['Proactively mention refund timeline at the start', 'Offer to send a confirmation email for the refund', 'Check for other potential billing discrepancies before ending call']}

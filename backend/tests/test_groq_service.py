@@ -124,3 +124,16 @@ def test_empty_suggestions_are_an_error():
     service = service_with(FakeAsyncGroq(replies=['{"suggestions": []}']))
     with pytest.raises(AIServiceError, match='returned none'):
         asyncio.run(service.generate_feedback_suggestions('summary', [], 'neutral'))
+
+
+def test_confidence_comes_from_whisper_segments(audio_file):
+    segments = [{'start': 0.0, 'end': 2.0, 'avg_logprob': -0.1}, {'start': 2.0, 'end': 6.0, 'avg_logprob': -0.5}]
+    service = service_with(FakeAsyncGroq(transcription={'text': 'hello', 'duration': 6.0, 'segments': segments}))
+    result = asyncio.run(service.transcribe_audio(audio_file))
+    # (exp(-0.1) * 2 s + exp(-0.5) * 4 s) / 6 s
+    assert result['confidence'] == 0.706 and result['duration'] == 6.0
+
+
+def test_confidence_is_unknown_without_segments(audio_file):
+    service = service_with(FakeAsyncGroq(transcription={'text': 'hello'}))
+    assert asyncio.run(service.transcribe_audio(audio_file))['confidence'] is None
