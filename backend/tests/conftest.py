@@ -1,14 +1,14 @@
 """Shared fixtures: a throwaway SQLite database, users of each role, audits and auth headers.
 
 The environment is set before the app is imported because the database engine, the JWT secret
-and the AI client are all created at import time.
+and the AI client are all created at import time. Set TEST_DATABASE_URL to run against PostgreSQL.
 """
 import os
 import tempfile
 from datetime import datetime, timedelta
 
 _TMP = tempfile.mkdtemp(prefix='dcm-tests-')
-os.environ['DATABASE_URL'] = 'sqlite:///' + os.path.join(_TMP, 'test.db').replace('\\', '/')
+os.environ['DATABASE_URL'] = os.environ.get('TEST_DATABASE_URL') or 'sqlite:///' + os.path.join(_TMP, 'test.db').replace('\\', '/')
 os.environ['STORAGE_PATH'] = os.path.join(_TMP, 'recordings')
 os.environ['GROQ_API_KEY'] = ''
 os.environ['JWT_SECRET_KEY'] = 'test-secret'
