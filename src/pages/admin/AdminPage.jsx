@@ -37,11 +37,11 @@ export default function AdminPage() {
     loadAdminDashboard()
   }, [])
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     try {
-      adminAPI.exportFeedbackCSV()
-      toast.success('Preparing CSV feedback export...')
-    } catch (error) {
+      await adminAPI.exportFeedbackCSV()
+      toast.success('Feedback CSV downloaded')
+    } catch {
       toast.error('Could not export feedback data')
     }
   }
