@@ -83,6 +83,19 @@ async def process_ai_analysis(audit_id: int, recording_path: str):
     finally:
         db.close()
 
+def fail_interrupted_analyses():
+    """Analyses run as in-process background tasks (one uvicorn worker), so any audit still 'processing'
+    when the app starts was cut off by a restart and would otherwise stay stuck."""
+    from database.connection import SessionLocal
+    db = SessionLocal()
+    try:
+        count = db.query(Audit).filter(Audit.status == AuditStatus.processing).update({Audit.status: AuditStatus.failed, Audit.ai_error: 'Interrupted by a server restart; retry the analysis'}, synchronize_session=False)
+        db.commit()
+        if count:
+            print(f'[AI] Marked {count} interrupted analyses as failed')
+    finally:
+        db.close()
+
 @router.get('/analysis/{audit_id}')
 async def get_ai_analysis(audit_id: int, current_user: User=Depends(get_current_user), db: Session=Depends(get_db)):
     """Get AI analysis results for an audit"""

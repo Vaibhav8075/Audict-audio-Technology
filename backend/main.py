@@ -17,6 +17,7 @@ async def lifespan(app: FastAPI):
     print('🚀 DCM Audit System starting up...')
     Base.metadata.create_all(bind=engine)
     upgrade_schema(engine)
+    ai_analysis.fail_interrupted_analyses()
     start_scheduler()
     print('✅ Database tables created')
     print('✅ Scheduler started')

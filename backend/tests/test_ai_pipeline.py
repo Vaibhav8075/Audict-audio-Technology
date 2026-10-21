@@ -143,3 +143,13 @@ def test_a_call_duration_entered_by_an_admin_is_kept(client, auth, use_ai, make_
     audit = make_audit(make_user(), call_duration=300)
     upload(client, auth(admin), audit)
     assert client.get(f'/api/audits/{audit.id}', headers=auth(admin)).json()['call_duration'] == 300
+
+
+def test_analyses_cut_off_by_a_restart_are_marked_failed_at_startup(db, make_user, make_audit):
+    agent = make_user()
+    stuck = make_audit(agent, status=AuditStatus.processing)
+    done = make_audit(agent, status=AuditStatus.completed)
+    ai.fail_interrupted_analyses()
+    db.expire_all()
+    assert (stuck.status, stuck.ai_error) == (AuditStatus.failed, 'Interrupted by a server restart; retry the analysis')
+    assert (done.status, done.ai_error) == (AuditStatus.completed, None)
