@@ -14,6 +14,7 @@ class AuditStatus(str, enum.Enum):
     processing = 'processing'
     completed = 'completed'
     expired = 'expired'
+    failed = 'failed'
 
 class FeedbackQuestionType(str, enum.Enum):
     rating = 'rating'
@@ -54,6 +55,7 @@ class Audit(Base):
     call_duration = Column(Integer, nullable=True)
     status = Column(Enum(AuditStatus), default=AuditStatus.pending)
     notes = Column(Text, nullable=True)
+    ai_error = Column(Text, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     employee = relationship('User', back_populates='audits', foreign_keys=[employee_id])

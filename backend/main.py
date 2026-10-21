@@ -6,6 +6,7 @@ import uvicorn
 import os
 from contextlib import asynccontextmanager
 from database.connection import engine, Base
+from database.migrations import upgrade_schema
 from routes import auth, users, audits, recordings, feedback, ai_analysis, admin
 from scheduler.tasks import start_scheduler, shutdown_scheduler
 from middleware.logging import LoggingMiddleware
@@ -15,6 +16,8 @@ async def lifespan(app: FastAPI):
     """Application lifespan - startup and shutdown events"""
     print('🚀 DCM Audit System starting up...')
     Base.metadata.create_all(bind=engine)
+    upgrade_schema(engine)
+    ai_analysis.fail_interrupted_analyses()
     start_scheduler()
     print('✅ Database tables created')
     print('✅ Scheduler started')

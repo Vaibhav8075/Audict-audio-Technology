@@ -21,6 +21,8 @@ async def upload_recording(audit_id: int, background_tasks: BackgroundTasks, fil
     audit = db.query(Audit).filter(Audit.id == audit_id).first()
     if not audit:
         raise HTTPException(status_code=404, detail='Audit not found')
+    if audit.status == AuditStatus.processing:
+        raise HTTPException(status_code=409, detail='This call is still being analysed; upload the new recording when it finishes')
     existing = db.query(Recording).filter(Recording.audit_id == audit_id).first()
     content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
     if content_type not in ALLOWED_MIME_TYPES:
@@ -54,6 +56,7 @@ async def upload_recording(audit_id: int, background_tasks: BackgroundTasks, fil
         recording = Recording(audit_id=audit_id, file_name=file.filename, file_path=file_path, file_size=len(contents), mime_type=content_type, is_expired=False, expires_at=expires_at, uploaded_by=current_user.id)
         db.add(recording)
     audit.status = AuditStatus.processing
+    audit.ai_error = None
     db.commit()
     from routes.ai_analysis import process_ai_analysis
     background_tasks.add_task(process_ai_analysis, audit_id=audit_id, recording_path=file_path)

@@ -24,7 +24,7 @@ class AuditUpdate(BaseModel):
     call_duration: Optional[int] = None
 
 def audit_to_dict(audit: Audit, include_recording: bool=True) -> dict:
-    data = {'id': audit.id, 'audit_id': audit.audit_id, 'campaign_name': audit.campaign_name, 'employee_id': audit.employee_id, 'employee_name': audit.employee.full_name if audit.employee else None, 'call_date': audit.call_date.isoformat() if audit.call_date else None, 'call_duration': audit.call_duration, 'status': audit.status.value, 'notes': audit.notes, 'created_at': audit.created_at.isoformat() if audit.created_at else None}
+    data = {'id': audit.id, 'audit_id': audit.audit_id, 'campaign_name': audit.campaign_name, 'employee_id': audit.employee_id, 'employee_name': audit.employee.full_name if audit.employee else None, 'call_date': audit.call_date.isoformat() if audit.call_date else None, 'call_duration': audit.call_duration, 'status': audit.status.value, 'ai_error': audit.ai_error, 'notes': audit.notes, 'created_at': audit.created_at.isoformat() if audit.created_at else None}
     if include_recording and audit.recording:
         rec = audit.recording
         uploaded_week = None

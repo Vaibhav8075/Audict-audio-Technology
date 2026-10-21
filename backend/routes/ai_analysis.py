@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 import time
+from datetime import datetime
 from database.connection import get_db
 from models import User, Audit, Recording, AIAnalysis, UserRole, SentimentLabel, AuditStatus
 from dependencies import get_current_user, get_current_admin
-from groq_service import GroqService
+from groq_service import GroqService, AIServiceError
 router = APIRouter()
 groq_service = GroqService()
 
@@ -25,38 +26,73 @@ async def trigger_ai_analysis(audit_id: int, background_tasks: BackgroundTasks, 
     recording = db.query(Recording).filter(Recording.audit_id == audit_id, Recording.is_expired == False).first()
     if not recording or not recording.file_path:
         raise HTTPException(status_code=400, detail='No valid recording found for this audit')
+    if audit.status == AuditStatus.processing:
+        raise HTTPException(status_code=409, detail='Analysis is already running for this audit')
     existing = db.query(AIAnalysis).filter(AIAnalysis.audit_id == audit_id).first()
-    if existing:
+    if existing and audit.status != AuditStatus.failed:
         return {'message': 'Analysis already exists', 'analysis_id': existing.id}
+    audit.status = AuditStatus.processing
+    audit.ai_error = None
+    db.commit()
     background_tasks.add_task(process_ai_analysis, audit_id=audit_id, recording_path=recording.file_path)
     return {'message': 'AI analysis queued', 'audit_id': audit_id}
 
 async def process_ai_analysis(audit_id: int, recording_path: str):
-    """Background task: Run full AI analysis pipeline"""
+    """Background task: transcribe and score a recording, or mark the audit failed with the reason"""
     from database.connection import SessionLocal
     db = SessionLocal()
     try:
         start_time = time.time()
         transcription_result = await groq_service.transcribe_audio(recording_path)
-        if not transcription_result.get('text'):
-            print(f'[AI] Transcription failed for audit {audit_id}')
-            return
-        transcript = transcription_result['text']
+        transcript = (transcription_result.get('text') or '').strip()
+        if not transcript:
+            raise AIServiceError('No speech was found in the recording')
         analysis = await groq_service.analyze_call(transcript)
         processing_time = time.time() - start_time
         sentiment_str = analysis.get('sentiment', {}).get('label', 'neutral').lower()
         sentiment_map = {'positive': SentimentLabel.positive, 'neutral': SentimentLabel.neutral, 'negative': SentimentLabel.negative}
         sentiment_label = sentiment_map.get(sentiment_str, SentimentLabel.neutral)
-        ai_record = AIAnalysis(audit_id=audit_id, transcription=transcript, transcription_confidence=transcription_result.get('confidence'), call_summary=analysis.get('summary'), key_points=analysis.get('key_points', []), sentiment_label=sentiment_label, sentiment_score=analysis.get('sentiment', {}).get('score', 0.0), sentiment_details=analysis.get('sentiment', {}), keywords=analysis.get('keywords', []), topics=analysis.get('topics', []), call_quality_score=analysis.get('call_quality_score'), customer_satisfaction_score=analysis.get('customer_satisfaction_score'), identified_issues=analysis.get('identified_issues', []), ai_suggestions=analysis.get('suggestions', []), processing_time=processing_time, model_used='mock-fallback' if analysis.get('_mock') else groq_service.llm_model)
-        db.add(ai_record)
+        fields = dict(transcription=transcript, transcription_confidence=transcription_result.get('confidence'), call_summary=analysis.get('summary'), key_points=analysis.get('key_points', []), sentiment_label=sentiment_label, sentiment_score=analysis.get('sentiment', {}).get('score', 0.0), sentiment_details=analysis.get('sentiment', {}), keywords=analysis.get('keywords', []), topics=analysis.get('topics', []), call_quality_score=analysis.get('call_quality_score'), customer_satisfaction_score=analysis.get('customer_satisfaction_score'), identified_issues=analysis.get('identified_issues', []), ai_suggestions=analysis.get('suggestions', []), processing_time=processing_time, model_used='mock-fallback' if analysis.get('_mock') else groq_service.llm_model, processed_at=datetime.utcnow())
+        ai_record = db.query(AIAnalysis).filter(AIAnalysis.audit_id == audit_id).first()
+        if ai_record:  # a re-uploaded recording replaces the earlier analysis
+            for field, value in fields.items():
+                setattr(ai_record, field, value)
+        else:
+            db.add(AIAnalysis(audit_id=audit_id, **fields))
         audit = db.query(Audit).filter(Audit.id == audit_id).first()
+        duration = transcription_result.get('duration')
         if audit:
             audit.status = AuditStatus.completed
+            audit.ai_error = None
+            if duration and not audit.call_duration:
+                audit.call_duration = round(duration)
+        recording = db.query(Recording).filter(Recording.audit_id == audit_id).first()
+        if recording and duration:
+            recording.duration = duration
         db.commit()
         print(f'[AI] Analysis completed for audit {audit_id} in {processing_time:.2f}s')
     except Exception as e:
-        print(f'[AI] Error processing audit {audit_id}: {e}')
+        print(f'[AI] Analysis failed for audit {audit_id}: {e}')
         db.rollback()
+        reason = str(e) if isinstance(e, AIServiceError) else 'Unexpected error while saving the analysis; see the server log'
+        audit = db.query(Audit).filter(Audit.id == audit_id).first()
+        if audit:
+            audit.status = AuditStatus.failed
+            audit.ai_error = reason[:500]
+            db.commit()
+    finally:
+        db.close()
+
+def fail_interrupted_analyses():
+    """Analyses run as in-process background tasks (one uvicorn worker), so any audit still 'processing'
+    when the app starts was cut off by a restart and would otherwise stay stuck."""
+    from database.connection import SessionLocal
+    db = SessionLocal()
+    try:
+        count = db.query(Audit).filter(Audit.status == AuditStatus.processing).update({Audit.status: AuditStatus.failed, Audit.ai_error: 'Interrupted by a server restart; retry the analysis'}, synchronize_session=False)
+        db.commit()
+        if count:
+            print(f'[AI] Marked {count} interrupted analyses as failed')
     finally:
         db.close()
 
@@ -122,5 +158,8 @@ async def generate_feedback_suggestions(audit_id: int, current_user: User=Depend
     analysis = db.query(AIAnalysis).filter(AIAnalysis.audit_id == audit_id).first()
     if not analysis or not analysis.transcription:
         raise HTTPException(status_code=400, detail='No analysis available for suggestions')
-    suggestions = await groq_service.generate_feedback_suggestions(analysis.call_summary or '', analysis.identified_issues or [], analysis.sentiment_label.value if analysis.sentiment_label else 'neutral')
+    try:
+        suggestions = await groq_service.generate_feedback_suggestions(analysis.call_summary or '', analysis.identified_issues or [], analysis.sentiment_label.value if analysis.sentiment_label else 'neutral')
+    except AIServiceError as e:
+        raise HTTPException(status_code=502, detail=str(e))
     return {'suggestions': suggestions}
