@@ -28,6 +28,8 @@ $aws = (Get-Command aws -ErrorAction SilentlyContinue).Source
 if (-not $aws) { $aws = 'C:\Program Files\Amazon\AWSCLIV2\aws.exe' }
 
 function Aws {
+    # The CLI prints progress on stderr; success is judged by the exit code alone
+    $ErrorActionPreference = 'Continue'
     $out = & $aws --region $Region @args
     if ($LASTEXITCODE -ne 0) { throw "aws $($args[0]) $($args[1]) failed (exit $LASTEXITCODE)" }
     $out
@@ -77,7 +79,7 @@ try {
 
 Write-Host "== CloudFormation stack '$StackName'"
 $stackExists = Test-Aws cloudformation describe-stacks --stack-name $StackName
-$prefixList = Aws ec2 describe-managed-prefix-lists --filters Name=prefix-list-name,Values=com.amazonaws.global.cloudfront.origin-facing --query 'PrefixLists[0].PrefixListId' --output text
+$prefixList = Aws ec2 describe-managed-prefix-lists --filters 'Name=prefix-list-name,Values=com.amazonaws.global.cloudfront.origin-facing' --query 'PrefixLists[0].PrefixListId' --output text
 $overrides = @(
     "InstanceType=$InstanceType", "CloudFrontPrefixList=$prefixList", "AlertEmail=$AlertEmail", "ParameterPrefix=$prefix",
     "ExistingInstanceProfile=$(if ($LearnerLab) { 'LabInstanceProfile' } else { '' })",
